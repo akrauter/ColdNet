@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-ColdNet.Worker-e2b6b5e0-38e4-4737-a7bf-93ef0b95a4e3</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ColdNet.Core\ColdNet.Core.csproj" />
+    <ProjectReference Include="..\ColdNet.Data\ColdNet.Data.csproj" />
+    <ProjectReference Include="..\ColdNet.Modules\ColdNet.Modules.csproj" />
+    <ProjectReference Include="..\ColdNet.Engine\ColdNet.Engine.csproj" />
+    <ProjectReference Include="..\ColdNet.EdmVault\ColdNet.EdmVault.csproj" />
+  </ItemGroup>
+</Project>

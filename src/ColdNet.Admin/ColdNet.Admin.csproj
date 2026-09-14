@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\ColdNet.Core\ColdNet.Core.csproj" />
+    <ProjectReference Include="..\ColdNet.Data\ColdNet.Data.csproj" />
+    <ProjectReference Include="..\ColdNet.Modules\ColdNet.Modules.csproj" />
+    <ProjectReference Include="..\ColdNet.Engine\ColdNet.Engine.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+  </PropertyGroup>
+
+</Project>

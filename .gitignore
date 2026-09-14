@@ -1,0 +1,18 @@
+## .NET
+bin/
+obj/
+*.user
+
+## SQLite dev databases
+data/*.db
+data/*.db-shm
+data/*.db-wal
+src/ColdNet.Data/*.db
+
+## IDE
+.vs/
+.idea/
+*.swp
+
+## Secrets - never commit real EDMVault credentials
+**/secrets.json

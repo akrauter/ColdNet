@@ -1,0 +1,35 @@
+@page "/settings"
+@rendermode InteractiveServer
+@inject IConfiguration Configuration
+@inject IDbContextFactory<ColdNetDbContext> DbFactory
+
+<PageTitle>ColdNet Admin - Settings</PageTitle>
+
+<h1>Settings</h1>
+<p class="text-muted">Base configuration (appsettings.json / environment variables). Changing the database provider or connection string requires restarting ColdNet.Admin and ColdNet.Worker.</p>
+
+<table class="table w-auto">
+    <tbody>
+        <tr><th>Database provider</th><td>@Configuration["ColdNet:Database:Provider"]</td></tr>
+        <tr><th>Connection string</th><td><code>@Configuration.GetConnectionString("ColdNet")</code></td></tr>
+        <tr><th>Worker name (this admin's "run now")</th><td>@Configuration["ColdNet:Worker:WorkerName"]</td></tr>
+        <tr><th>Worker poll interval</th><td>@(Configuration["ColdNet:Worker:PollIntervalSeconds"])s</td></tr>
+        <tr><th>Process groups</th><td>@_groupCount</td></tr>
+        <tr><th>Process chains</th><td>@_chainCount</td></tr>
+        <tr><th>Open jobs (Ready/Working/Error)</th><td>@_openJobCount</td></tr>
+    </tbody>
+</table>
+
+@code {
+    private int _groupCount;
+    private int _chainCount;
+    private int _openJobCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _groupCount = await db.ProcessGroups.CountAsync();
+        _chainCount = await db.ProcessChains.CountAsync();
+        _openJobCount = await db.Jobs.CountAsync(j => j.Status != JobStatus.Finished);
+    }
+}

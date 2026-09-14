@@ -1,0 +1,151 @@
+@page "/jobs"
+@rendermode InteractiveServer
+@inject IDbContextFactory<ColdNetDbContext> DbFactory
+
+<PageTitle>ColdNet Admin - Jobs</PageTitle>
+
+<h1>Jobs</h1>
+
+<div class="row g-2 mb-3">
+    <div class="col-md-4">
+        <select class="form-select" @bind="_chainFilter" @bind:after="LoadAsync">
+            <option value="">All chains</option>
+            @foreach (var chain in _chains)
+            {
+                <option value="@chain.Id">@chain.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" @bind="_statusFilter" @bind:after="LoadAsync">
+            <option value="">All statuses</option>
+            @foreach (var status in Enum.GetValues<JobStatus>())
+            {
+                <option value="@status">@status</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-outline-secondary w-100" @onclick="LoadAsync">Refresh</button>
+    </div>
+</div>
+
+@if (_jobs is null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (_jobs.Count == 0)
+{
+    <p class="text-muted">No jobs match the current filter.</p>
+}
+else
+{
+    <table class="table table-sm table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Prefix</th>
+                <th>Chain</th>
+                <th>Status</th>
+                <th>Module</th>
+                <th>Updated</th>
+                <th>Error</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var job in _jobs)
+            {
+                <tr>
+                    <td><code>@job.FilePrefix</code></td>
+                    <td>@_chainNames.GetValueOrDefault(job.ProcessChainId, "?")</td>
+                    <td><span class="badge @StatusBadgeClass(job.Status)">@job.Status</span></td>
+                    <td>@job.CurrentModuleOrder</td>
+                    <td>@DateTime.SpecifyKind(job.UpdatedAtUtc, DateTimeKind.Utc).ToLocalTime().ToString("g")</td>
+                    <td class="text-danger small">@job.ErrorMessage</td>
+                    <td>
+                        @if (job.Status == JobStatus.Error)
+                        {
+                            <button class="btn btn-sm btn-outline-success" @onclick="() => ResetJobAsync(job.Id)">Reset to Ready</button>
+                        }
+                        <button class="btn btn-sm btn-outline-danger ms-1" @onclick="() => DeleteJobAsync(job.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<ProcessChain> _chains = [];
+    private Dictionary<Guid, string> _chainNames = new();
+    private List<Job>? _jobs;
+    private string _chainFilter = string.Empty;
+    private string _statusFilter = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _chains = await db.ProcessChains.OrderBy(c => c.Name).ToListAsync();
+        _chainNames = _chains.ToDictionary(c => c.Id, c => c.Name);
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var query = db.Jobs.AsQueryable();
+
+        if (Guid.TryParse(_chainFilter, out var chainId))
+        {
+            query = query.Where(j => j.ProcessChainId == chainId);
+        }
+
+        if (Enum.TryParse<JobStatus>(_statusFilter, out var status))
+        {
+            query = query.Where(j => j.Status == status);
+        }
+
+        _jobs = await query.OrderByDescending(j => j.UpdatedAtUtc).Take(200).ToListAsync();
+    }
+
+    private async Task ResetJobAsync(Guid jobId)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var job = await db.Jobs.FirstOrDefaultAsync(j => j.Id == jobId);
+        if (job is null)
+        {
+            return;
+        }
+
+        job.Status = JobStatus.Ready;
+        job.ErrorMessage = null;
+        job.UpdatedAtUtc = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+
+        await LoadAsync();
+    }
+
+    private async Task DeleteJobAsync(Guid jobId)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var job = await db.Jobs.FirstOrDefaultAsync(j => j.Id == jobId);
+        if (job is null)
+        {
+            return;
+        }
+
+        db.Jobs.Remove(job);
+        await db.SaveChangesAsync();
+
+        await LoadAsync();
+    }
+
+    private static string StatusBadgeClass(JobStatus status) => status switch
+    {
+        JobStatus.Ready => "bg-light text-dark border",
+        JobStatus.Working => "bg-primary",
+        JobStatus.Error => "bg-danger",
+        JobStatus.Finished => "bg-success",
+        _ => "bg-secondary",
+    };
+}

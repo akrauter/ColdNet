@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "coldnet-admin",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/ColdNet.Admin/ColdNet.Admin.csproj", "--urls", "http://localhost:5202"],
+      "port": 5202
+    }
+  ]
+}

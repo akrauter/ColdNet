@@ -1,0 +1,312 @@
+@page "/"
+@rendermode InteractiveServer
+@inject IDbContextFactory<ColdNetDbContext> DbFactory
+@inject NavigationManager Nav
+
+<PageTitle>ColdNet Admin - Process groups</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Process groups</h1>
+    <button class="btn btn-primary" @onclick="() => _showNewGroup = !_showNewGroup">New group</button>
+</div>
+
+@if (_showNewGroup)
+{
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">New process group</h5>
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <input class="form-control" placeholder="Name" @bind="_newGroupName" />
+                </div>
+                <div class="col-md-3">
+                    <input class="form-control" placeholder="Short name (max 10)" maxlength="10" @bind="_newGroupShortName" />
+                </div>
+                <div class="col-md-4">
+                    <input class="form-control" placeholder="Description" @bind="_newGroupDescription" />
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-success w-100" @onclick="CreateGroupAsync">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_groups is null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (_groups.Count == 0)
+{
+    <p class="text-muted">No process groups yet.</p>
+}
+else
+{
+    @foreach (var group in _groups)
+    {
+        var status = _groupStatuses[group.Id];
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="status-dot status-@status.ToString().ToLowerInvariant()"></span>
+                    <strong>@group.Name</strong>
+                    @if (group.IsDefault)
+                    {
+                        <span class="badge bg-secondary ms-2">default</span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(group.Description))
+                    {
+                        <span class="text-muted ms-2">@group.Description</span>
+                    }
+                </div>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary" @onclick="() => ToggleNewChain(group.Id)">New chain</button>
+                    @if (!group.IsDefault)
+                    {
+                        <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteGroupAsync(group.Id)">Delete</button>
+                    }
+                </div>
+            </div>
+
+            @if (_newChainGroupId == group.Id)
+            {
+                <div class="card-body border-bottom bg-light">
+                    <div class="row g-2">
+                        <div class="col-md-5">
+                            <input class="form-control" placeholder="Chain name" @bind="_newChainName" />
+                        </div>
+                        <div class="col-md-4">
+                            <input class="form-control" placeholder="Worker name" @bind="_newChainWorkerName" />
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-success w-100" @onclick="() => CreateChainAsync(group.Id)">Create chain</button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <ul class="list-group list-group-flush">
+                @foreach (var chain in group.Chains)
+                {
+                    var chainStatus = _chainStatuses[chain.Id];
+                    var counts = _jobCounts.GetValueOrDefault(chain.Id, new JobCounts());
+                    <li class="list-group-item d-flex justify-content-between align-items-center chain-row" @onclick='() => Nav.NavigateTo($"/chains/{chain.Id}")'>
+                        <div>
+                            <span class="status-dot status-@chainStatus.ToString().ToLowerInvariant()"></span>
+                            <strong>@chain.Name</strong>
+                            <span class="text-muted ms-2">worker: @chain.WorkerName</span>
+                            <span class="text-muted ms-2">@chain.Modules.Count module(s)</span>
+                        </div>
+                        <div>
+                            <span class="badge bg-light text-dark border me-1" title="Ready">R: @counts.Ready</span>
+                            <span class="badge bg-light text-dark border me-1" title="Working">W: @counts.Working</span>
+                            <span class="badge @(counts.Error > 0 ? "bg-danger" : "bg-light text-dark border")" title="Error">E: @counts.Error</span>
+                        </div>
+                    </li>
+                }
+                @if (group.Chains.Count == 0)
+                {
+                    <li class="list-group-item text-muted">No process chains in this group yet.</li>
+                }
+            </ul>
+        </div>
+    }
+}
+
+<style>
+    .status-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; }
+    .status-grey { background-color:#adb5bd; }
+    .status-yellow { background-color:#ffc107; }
+    .status-red { background-color:#dc3545; }
+    .status-green { background-color:#198754; }
+    .chain-row { cursor:pointer; }
+    .chain-row:hover { background-color: var(--bs-tertiary-bg, #f8f9fa); }
+</style>
+
+@code {
+    private List<ProcessGroup>? _groups;
+    private Dictionary<Guid, GroupStatus> _groupStatuses = new();
+    private Dictionary<Guid, ChainStatus> _chainStatuses = new();
+    private Dictionary<Guid, JobCounts> _jobCounts = new();
+
+    private bool _showNewGroup;
+    private string _newGroupName = string.Empty;
+    private string _newGroupShortName = string.Empty;
+    private string _newGroupDescription = string.Empty;
+
+    private Guid? _newChainGroupId;
+    private string _newChainName = string.Empty;
+    private string _newChainWorkerName = "default";
+
+    private enum GroupStatus { Grey, Yellow, Red, Green }
+    private enum ChainStatus { Grey, Yellow, Red, Green }
+
+    private class JobCounts
+    {
+        public int Ready { get; set; }
+        public int Working { get; set; }
+        public int Error { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        _groups = await db.ProcessGroups
+            .Include(g => g.Chains).ThenInclude(c => c.Modules)
+            .OrderBy(g => g.IsDefault ? 0 : 1).ThenBy(g => g.Name)
+            .ToListAsync();
+
+        var counts = await db.Jobs
+            .Where(j => j.Status == JobStatus.Ready || j.Status == JobStatus.Working || j.Status == JobStatus.Error)
+            .GroupBy(j => new { j.ProcessChainId, j.Status })
+            .Select(g => new { g.Key.ProcessChainId, g.Key.Status, Count = g.Count() })
+            .ToListAsync();
+
+        _jobCounts = new Dictionary<Guid, JobCounts>();
+        foreach (var c in counts)
+        {
+            if (!_jobCounts.TryGetValue(c.ProcessChainId, out var jc))
+            {
+                jc = new JobCounts();
+                _jobCounts[c.ProcessChainId] = jc;
+            }
+
+            switch (c.Status)
+            {
+                case JobStatus.Ready: jc.Ready = c.Count; break;
+                case JobStatus.Working: jc.Working = c.Count; break;
+                case JobStatus.Error: jc.Error = c.Count; break;
+            }
+        }
+
+        _chainStatuses = new Dictionary<Guid, ChainStatus>();
+        _groupStatuses = new Dictionary<Guid, GroupStatus>();
+
+        foreach (var group in _groups)
+        {
+            var anyError = false;
+            var anyRunning = false;
+            var anyEnabled = false;
+
+            foreach (var chain in group.Chains)
+            {
+                var jc = _jobCounts.GetValueOrDefault(chain.Id, new JobCounts());
+                ChainStatus status;
+                if (!chain.Enabled)
+                {
+                    status = ChainStatus.Grey;
+                }
+                else
+                {
+                    anyEnabled = true;
+                    if (jc.Error > 0)
+                    {
+                        status = ChainStatus.Red;
+                    }
+                    else if (chain.IsRunning)
+                    {
+                        status = ChainStatus.Green;
+                        anyRunning = true;
+                    }
+                    else
+                    {
+                        status = ChainStatus.Yellow;
+                    }
+                }
+
+                _chainStatuses[chain.Id] = status;
+                if (status == ChainStatus.Red)
+                {
+                    anyError = true;
+                }
+            }
+
+            _groupStatuses[group.Id] = !anyEnabled
+                ? GroupStatus.Grey
+                : anyError
+                    ? GroupStatus.Red
+                    : anyRunning
+                        ? GroupStatus.Green
+                        : GroupStatus.Yellow;
+        }
+    }
+
+    private async Task CreateGroupAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newGroupName))
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        db.ProcessGroups.Add(new ProcessGroup
+        {
+            Name = _newGroupName,
+            ShortName = string.IsNullOrWhiteSpace(_newGroupShortName)
+                ? _newGroupName[..Math.Min(10, _newGroupName.Length)]
+                : _newGroupShortName,
+            Description = _newGroupDescription,
+        });
+        await db.SaveChangesAsync();
+
+        _newGroupName = _newGroupShortName = _newGroupDescription = string.Empty;
+        _showNewGroup = false;
+        await LoadAsync();
+    }
+
+    private async Task DeleteGroupAsync(Guid groupId)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var group = await db.ProcessGroups.Include(g => g.Chains).FirstOrDefaultAsync(g => g.Id == groupId);
+        if (group is null || group.IsDefault)
+        {
+            return;
+        }
+
+        db.ProcessGroups.Remove(group);
+        await db.SaveChangesAsync();
+        await LoadAsync();
+    }
+
+    private void ToggleNewChain(Guid groupId)
+    {
+        _newChainGroupId = _newChainGroupId == groupId ? null : groupId;
+        _newChainName = string.Empty;
+        _newChainWorkerName = "default";
+    }
+
+    private async Task CreateChainAsync(Guid groupId)
+    {
+        if (string.IsNullOrWhiteSpace(_newChainName))
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        var chain = new ProcessChain
+        {
+            ProcessGroupId = groupId,
+            Name = _newChainName,
+            WorkerName = string.IsNullOrWhiteSpace(_newChainWorkerName) ? "default" : _newChainWorkerName,
+        };
+
+        chain.Modules.Add(new ModuleInstance
+        {
+            ProcessChainId = chain.Id,
+            Order = 0,
+            ModuleTypeName = "ColdImport",
+            DisplayName = "Import",
+        });
+
+        db.ProcessChains.Add(chain);
+        await db.SaveChangesAsync();
+
+        _newChainGroupId = null;
+        Nav.NavigateTo($"/chains/{chain.Id}");
+    }
+}

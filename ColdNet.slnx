@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/ColdNet.Core.Tests/ColdNet.Core.Tests.csproj" />
+    <Project Path="tests/ColdNet.Engine.Tests/ColdNet.Engine.Tests.csproj" />
+  </Folder>
+</Solution>

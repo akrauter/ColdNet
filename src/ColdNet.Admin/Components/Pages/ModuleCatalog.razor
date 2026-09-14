@@ -1,0 +1,40 @@
+@page "/modules"
+@rendermode InteractiveServer
+@inject ModuleRegistry Registry
+
+<PageTitle>ColdNet Admin - Modules</PageTitle>
+
+<h1>Module catalogue</h1>
+<p class="text-muted">Every module available to process chains, grouped like the d.cold module chapters. Drop a class with <code>[ModuleDefinition]</code> into ColdNet.Modules (or a plugin assembly) to add another one - no registry changes needed.</p>
+
+@foreach (var category in Enum.GetValues<ModuleCategory>())
+{
+    var entries = Registry.ByCategory(category).OrderBy(e => e.DisplayName).ToList();
+    if (entries.Count == 0)
+    {
+        continue;
+    }
+
+    <h4 class="mt-4">@category</h4>
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>d.cold original</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var entry in entries)
+            {
+                <tr>
+                    <td>@entry.DisplayName @(entry.IsImportModule ? "(import)" : "")</td>
+                    <td><code>@entry.TypeName</code></td>
+                    <td>@(entry.OriginalModule ?? "-")</td>
+                    <td>@entry.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

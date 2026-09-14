@@ -1,0 +1,450 @@
+@page "/chains/{ChainId:guid}"
+@rendermode InteractiveServer
+@using System.Text.Json
+@inject IDbContextFactory<ColdNetDbContext> DbFactory
+@inject ModuleRegistry Registry
+@inject ChainScheduler Scheduler
+@inject NavigationManager Nav
+
+<PageTitle>ColdNet Admin - @(_chain?.Name ?? "Chain")</PageTitle>
+
+@if (_chain is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p><a href="/">&larr; Process groups</a></p>
+
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h1>@_chain.Name</h1>
+            <div class="text-muted">Chain ID: @_chain.Id</div>
+        </div>
+        <div class="text-end">
+            <button class="btn btn-outline-secondary me-2" @onclick="RunNowAsync" disabled="@_running">
+                @(_running ? "Running..." : "Run now")
+            </button>
+            <button class="btn @(_chain.IsRunning ? "btn-warning" : "btn-success") me-2" @onclick="ToggleRunningAsync">
+                @(_chain.IsRunning ? "Stop" : "Start")
+            </button>
+            <button class="btn btn-outline-danger" @onclick="DeleteChainAsync">Delete chain</button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_statusMessage))
+    {
+        <div class="alert alert-info">@_statusMessage</div>
+    }
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item"><button class="nav-link @(_tab == "modules" ? "active" : "")" @onclick='() => _tab = "modules"'>Modules</button></li>
+        <li class="nav-item"><button class="nav-link @(_tab == "details" ? "active" : "")" @onclick='() => _tab = "details"'>Details</button></li>
+    </ul>
+
+    @if (_tab == "details")
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Name</label>
+                        <input class="form-control" @bind="_chain.Name" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Worker name</label>
+                        <input class="form-control" @bind="_chain.WorkerName" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" @bind="_chain.Description"></textarea>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Jobs per step</label>
+                        <input type="number" min="1" class="form-control" @bind="_chain.JobsPerStep" />
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="chainEnabled" @bind="_chain.Enabled" />
+                            <label class="form-check-label" for="chainEnabled">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary mt-3" @onclick="SaveChainDetailsAsync">Save</button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card mb-3">
+            <ul class="list-group list-group-flush">
+                @for (var i = 0; i < _chain.Modules.Count; i++)
+                {
+                    var index = i;
+                    var module = _chain.Modules[index];
+                    var entry = Registry.Find(module.ModuleTypeName);
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-secondary me-2">@module.Order</span>
+                                <strong>@(entry?.DisplayName ?? module.ModuleTypeName)</strong>
+                                <span class="text-muted ms-2">@module.ModuleTypeName</span>
+                                @if (entry?.OriginalModule is not null)
+                                {
+                                    <span class="badge bg-light text-dark border ms-2">d.cold: @entry.OriginalModule</span>
+                                }
+                                @if (!module.Enabled)
+                                {
+                                    <span class="badge bg-secondary ms-2">disabled</span>
+                                }
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-secondary" disabled="@(index == 0 || index <= 1)" @onclick="() => MoveModuleAsync(index, -1)">&uarr;</button>
+                                <button class="btn btn-sm btn-outline-secondary" disabled="@(index == 0 || index == _chain.Modules.Count - 1)" @onclick="() => MoveModuleAsync(index, 1)">&darr;</button>
+                                <button class="btn btn-sm btn-outline-primary ms-1" @onclick="() => ToggleEdit(module.Id)">
+                                    @(_editingModuleId == module.Id ? "Close" : "Edit")
+                                </button>
+                                @if (index > 0)
+                                {
+                                    <button class="btn btn-sm btn-outline-danger ms-1" @onclick="() => RemoveModuleAsync(module.Id)">Remove</button>
+                                }
+                            </div>
+                        </div>
+                        @if (entry is not null)
+                        {
+                            <div class="text-muted small mt-1">@entry.Description</div>
+                        }
+
+                        @if (_editingModuleId == module.Id)
+                        {
+                            <div class="mt-3 p-3 bg-light border rounded">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Display name</label>
+                                        <input class="form-control" @bind="_editDisplayName" />
+                                    </div>
+                                    <div class="col-md-3 d-flex align-items-end">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="modEnabled" @bind="_editEnabled" />
+                                            <label class="form-check-label" for="modEnabled">Enabled</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <h6 class="mt-3">General</h6>
+                                <div class="row g-2">
+                                    <div class="col-md-6"><label class="form-label">Directory</label><input class="form-control" @bind="_editDirectory" /></div>
+                                    <div class="col-md-6"><label class="form-label">Output directory</label><input class="form-control" @bind="_editOutputDirectory" /></div>
+                                    <div class="col-md-3"><label class="form-label">File extension</label><input class="form-control" @bind="_editFileExtension" /></div>
+                                    <div class="col-md-3"><label class="form-label">Output file extension</label><input class="form-control" @bind="_editOutputFileExtension" /></div>
+                                    <div class="col-md-6 d-flex align-items-end gap-3">
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" id="editSave" @bind="_editSave" /><label class="form-check-label" for="editSave">Save</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" id="editDelete" @bind="_editDeleteSourceFile" /><label class="form-check-label" for="editDelete">Delete source</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" id="editMask" @bind="_editMaskForDms" /><label class="form-check-label" for="editMask">Mask for DMS</label></div>
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" id="editAppend" @bind="_editAppend" /><label class="form-check-label" for="editAppend">Append</label></div>
+                                    </div>
+                                </div>
+
+                                <h6 class="mt-3">DMS support (EDMVault)</h6>
+                                <div class="row g-2">
+                                    <div class="col-md-3 d-flex align-items-end">
+                                        <div class="form-check"><input class="form-check-input" type="checkbox" id="editDms" @bind="_editDmsEnabled" /><label class="form-check-label" for="editDms">Enabled</label></div>
+                                    </div>
+                                    <div class="col-md-9"><label class="form-label">Document type</label><input class="form-control" @bind="_editDocumentType" /></div>
+                                </div>
+
+                                <h6 class="mt-3">Module settings (JSON)</h6>
+                                @if (entry?.SettingsType is not null)
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary mb-2" @onclick="LoadDefaultSettingsTemplate">Load default template</button>
+                                }
+                                <textarea class="form-control font-monospace" rows="8" @bind="_editSettingsJson"></textarea>
+
+                                <div class="mt-3">
+                                    <button class="btn btn-success" @onclick="() => SaveModuleAsync(module.Id)">Save module</button>
+                                    <button class="btn btn-outline-secondary ms-2" @onclick="() => _editingModuleId = null">Cancel</button>
+                                </div>
+                            </div>
+                        }
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h6>Add module</h6>
+                <div class="row g-2">
+                    <div class="col-md-8">
+                        <select class="form-select" @bind="_newModuleType">
+                            <option value="">-- select a module --</option>
+                            @foreach (var category in Enum.GetValues<ModuleCategory>())
+                            {
+                                var entries = Registry.ByCategory(category).Where(e => !e.IsImportModule).OrderBy(e => e.DisplayName).ToList();
+                                if (entries.Count > 0)
+                                {
+                                    <optgroup label="@category">
+                                        @foreach (var entry in entries)
+                                        {
+                                            <option value="@entry.TypeName">@entry.DisplayName (@entry.TypeName)</option>
+                                        }
+                                    </optgroup>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-primary w-100" @onclick="AddModuleAsync" disabled="@string.IsNullOrEmpty(_newModuleType)">Add module</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public Guid ChainId { get; set; }
+
+    private ProcessChain? _chain;
+    private string _tab = "modules";
+    private string _newModuleType = string.Empty;
+    private string? _statusMessage;
+    private bool _running;
+
+    private Guid? _editingModuleId;
+    private string _editDisplayName = string.Empty;
+    private bool _editEnabled = true;
+    private string _editDirectory = string.Empty;
+    private string _editOutputDirectory = string.Empty;
+    private string _editFileExtension = string.Empty;
+    private string _editOutputFileExtension = string.Empty;
+    private bool _editSave;
+    private bool _editDeleteSourceFile;
+    private bool _editMaskForDms;
+    private bool _editAppend;
+    private bool _editDmsEnabled;
+    private string _editDocumentType = string.Empty;
+    private string _editSettingsJson = "{}";
+
+    protected override async Task OnParametersSetAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _chain = await db.ProcessChains.Include(c => c.Modules).FirstOrDefaultAsync(c => c.Id == ChainId);
+        _chain?.Modules.Sort((a, b) => a.Order.CompareTo(b.Order));
+    }
+
+    private void ToggleEdit(Guid moduleId)
+    {
+        if (_editingModuleId == moduleId)
+        {
+            _editingModuleId = null;
+            return;
+        }
+
+        var module = _chain!.Modules.First(m => m.Id == moduleId);
+        _editingModuleId = moduleId;
+        _editDisplayName = module.DisplayName ?? string.Empty;
+        _editEnabled = module.Enabled;
+        _editDirectory = module.CommonSettings.Directory;
+        _editOutputDirectory = module.CommonSettings.OutputDirectory ?? string.Empty;
+        _editFileExtension = module.CommonSettings.FileExtension;
+        _editOutputFileExtension = module.CommonSettings.OutputFileExtension ?? string.Empty;
+        _editSave = module.CommonSettings.Save;
+        _editDeleteSourceFile = module.CommonSettings.DeleteSourceFile;
+        _editMaskForDms = module.CommonSettings.MaskForDms;
+        _editAppend = module.CommonSettings.Append;
+        _editDmsEnabled = module.DmsSupport.Enabled;
+        _editDocumentType = module.DmsSupport.DocumentType ?? string.Empty;
+        _editSettingsJson = string.IsNullOrWhiteSpace(module.SettingsJson) ? "{}" : module.SettingsJson;
+    }
+
+    private void LoadDefaultSettingsTemplate()
+    {
+        if (_editingModuleId is null)
+        {
+            return;
+        }
+
+        var module = _chain!.Modules.First(m => m.Id == _editingModuleId);
+        var entry = Registry.Find(module.ModuleTypeName);
+        if (entry?.SettingsType is null)
+        {
+            return;
+        }
+
+        var instance = Activator.CreateInstance(entry.SettingsType);
+        _editSettingsJson = JsonSerializer.Serialize(instance, entry.SettingsType, new JsonSerializerOptions { WriteIndented = true });
+    }
+
+    private async Task SaveModuleAsync(Guid moduleId)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(_editSettingsJson) ? "{}" : _editSettingsJson);
+        }
+        catch (JsonException ex)
+        {
+            _statusMessage = $"Invalid settings JSON: {ex.Message}";
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var module = await db.ModuleInstances.FirstAsync(m => m.Id == moduleId);
+
+        module.DisplayName = _editDisplayName;
+        module.Enabled = _editEnabled;
+        module.CommonSettings.Directory = _editDirectory;
+        module.CommonSettings.OutputDirectory = string.IsNullOrWhiteSpace(_editOutputDirectory) ? null : _editOutputDirectory;
+        module.CommonSettings.FileExtension = _editFileExtension;
+        module.CommonSettings.OutputFileExtension = string.IsNullOrWhiteSpace(_editOutputFileExtension) ? null : _editOutputFileExtension;
+        module.CommonSettings.Save = _editSave;
+        module.CommonSettings.DeleteSourceFile = _editDeleteSourceFile;
+        module.CommonSettings.MaskForDms = _editMaskForDms;
+        module.CommonSettings.Append = _editAppend;
+        module.DmsSupport.Enabled = _editDmsEnabled;
+        module.DmsSupport.DocumentType = string.IsNullOrWhiteSpace(_editDocumentType) ? null : _editDocumentType;
+        module.SettingsJson = _editSettingsJson;
+
+        await db.SaveChangesAsync();
+
+        _editingModuleId = null;
+        _statusMessage = "Module saved.";
+        await LoadAsync();
+    }
+
+    private async Task AddModuleAsync()
+    {
+        if (string.IsNullOrEmpty(_newModuleType) || _chain is null)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var nextOrder = await db.ModuleInstances.Where(m => m.ProcessChainId == ChainId).CountAsync();
+
+        db.ModuleInstances.Add(new ModuleInstance
+        {
+            ProcessChainId = ChainId,
+            Order = nextOrder,
+            ModuleTypeName = _newModuleType,
+        });
+        await db.SaveChangesAsync();
+
+        _newModuleType = string.Empty;
+        await LoadAsync();
+    }
+
+    private async Task RemoveModuleAsync(Guid moduleId)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var toRemove = await db.ModuleInstances.FirstOrDefaultAsync(m => m.Id == moduleId);
+        if (toRemove is null)
+        {
+            return;
+        }
+
+        db.ModuleInstances.Remove(toRemove);
+        await db.SaveChangesAsync();
+
+        var remaining = await db.ModuleInstances.Where(m => m.ProcessChainId == ChainId).OrderBy(m => m.Order).ToListAsync();
+        for (var i = 0; i < remaining.Count; i++)
+        {
+            remaining[i].Order = i;
+        }
+        await db.SaveChangesAsync();
+
+        await LoadAsync();
+    }
+
+    private async Task MoveModuleAsync(int index, int direction)
+    {
+        if (_chain is null)
+        {
+            return;
+        }
+
+        var targetIndex = index + direction;
+        if (targetIndex <= 0 || targetIndex >= _chain.Modules.Count || index <= 0)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var a = await db.ModuleInstances.FirstAsync(m => m.Id == _chain.Modules[index].Id);
+        var b = await db.ModuleInstances.FirstAsync(m => m.Id == _chain.Modules[targetIndex].Id);
+        (a.Order, b.Order) = (b.Order, a.Order);
+        await db.SaveChangesAsync();
+
+        await LoadAsync();
+    }
+
+    private async Task SaveChainDetailsAsync()
+    {
+        if (_chain is null)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var chain = await db.ProcessChains.FirstAsync(c => c.Id == ChainId);
+        chain.Name = _chain.Name;
+        chain.Description = _chain.Description;
+        chain.WorkerName = _chain.WorkerName;
+        chain.JobsPerStep = Math.Max(1, _chain.JobsPerStep);
+        chain.Enabled = _chain.Enabled;
+        await db.SaveChangesAsync();
+
+        _statusMessage = "Chain details saved.";
+        await LoadAsync();
+    }
+
+    private async Task ToggleRunningAsync()
+    {
+        if (_chain is null)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var chain = await db.ProcessChains.FirstAsync(c => c.Id == ChainId);
+        chain.IsRunning = !chain.IsRunning;
+        await db.SaveChangesAsync();
+
+        await LoadAsync();
+    }
+
+    private async Task DeleteChainAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var chain = await db.ProcessChains.FirstOrDefaultAsync(c => c.Id == ChainId);
+        if (chain is null)
+        {
+            return;
+        }
+
+        var groupId = chain.ProcessGroupId;
+        db.ProcessChains.Remove(chain);
+        await db.SaveChangesAsync();
+
+        Nav.NavigateTo("/");
+    }
+
+    private async Task RunNowAsync()
+    {
+        _running = true;
+        _statusMessage = null;
+        try
+        {
+            await Scheduler.RunOnceAsync(CancellationToken.None);
+            _statusMessage = "Scheduling pass completed.";
+        }
+        finally
+        {
+            _running = false;
+        }
+
+        await LoadAsync();
+    }
+}
