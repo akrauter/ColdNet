@@ -3,6 +3,11 @@ bin/
 obj/
 *.user
 
+## Local publish output (see .github/workflows/ci-release.yml for the real release build)
+/publish/
+/publish-test/
+*.zip
+
 ## SQLite dev databases
 data/*.db
 data/*.db-shm

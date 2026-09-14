@@ -1,0 +1,91 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+
+jobs:
+  build-and-test:
+    name: Build & test
+    # windows-latest: the graphics/barcode modules are built on System.Drawing.Common (GDI+),
+    # which only runs on Windows - their tests need a Windows runner to actually execute.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore ColdNet.slnx
+
+      - name: Build
+        run: dotnet build ColdNet.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test ColdNet.slnx --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+
+      - name: Publish test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/test-results.trx'
+
+  release:
+    name: Build & publish local-execution release
+    needs: build-and-test
+    # Only ever release from master, regardless of which event triggered the run.
+    if: github.ref == 'refs/heads/master'
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Determine version
+        id: version
+        shell: pwsh
+        run: |
+          $version = "{0}.{1}" -f (Get-Date -Format "yyyy.MM.dd"), "${{ github.run_number }}"
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Publish ColdNet.Admin (win-x64, self-contained)
+        run: dotnet publish src/ColdNet.Admin/ColdNet.Admin.csproj --configuration Release --runtime win-x64 --self-contained true --output publish/Admin
+
+      - name: Publish ColdNet.Worker (win-x64, self-contained)
+        run: dotnet publish src/ColdNet.Worker/ColdNet.Worker.csproj --configuration Release --runtime win-x64 --self-contained true --output publish/Worker
+
+      - name: Assemble local-execution package
+        shell: pwsh
+        run: |
+          Copy-Item deploy/local-release/Start-Admin.bat publish/
+          Copy-Item deploy/local-release/Start-Worker.bat publish/
+          Copy-Item deploy/local-release/README.txt publish/
+          Compress-Archive -Path publish/Admin, publish/Worker, publish/Start-Admin.bat, publish/Start-Worker.bat, publish/README.txt `
+            -DestinationPath ColdNet-win-x64-${{ steps.version.outputs.version }}.zip
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: ColdNet ${{ steps.version.outputs.version }}
+          target_commitish: master
+          make_latest: true
+          generate_release_notes: true
+          files: ColdNet-win-x64-${{ steps.version.outputs.version }}.zip

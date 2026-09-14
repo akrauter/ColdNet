@@ -32,6 +32,8 @@ tests/
   ColdNet.Engine.Tests
 docs/
   MODULES.md         Full d.cold-module -> ColdNet-module mapping table
+deploy/local-release/ Files bundled into the release zip (Start-*.bat, README.txt)
+.github/workflows/   CI (build+test) and CD (local-execution release from master)
 data/                Shared SQLite database file (dev default)
 ```
 
@@ -48,6 +50,17 @@ dotnet run --project src/ColdNet.Worker/ColdNet.Worker.csproj  # background proc
 ```
 
 Both apply pending EF Core migrations and seed the built-in `default` process group on startup.
+
+### Or: download a ready-to-run release
+
+Every push to `master` that passes CI publishes a new
+[GitHub release](https://github.com/akrauter/ColdNet/releases) with a
+`ColdNet-win-x64-<version>.zip` asset - a self-contained build (no .NET install required) with
+`Admin/`, `Worker/`, `Start-Admin.bat` and `Start-Worker.bat`. Unzip it, run `Start-Admin.bat`,
+open http://localhost:5202, then run `Start-Worker.bat` to actually process chains in the
+background. See `deploy/local-release/README.txt` (bundled in the zip) for details. See
+`.github/workflows/ci-release.yml` for the pipeline itself: it builds and tests on every push/PR,
+and only cuts a release once those pass **and** the commit is on `master`.
 
 ## Core concepts (mirrors d.cold's own terms)
 
