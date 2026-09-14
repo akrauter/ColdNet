@@ -1,10 +1,8 @@
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Runtime.Versioning;
 using ColdNet.Core.Modules;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Bmp;
-using SixLabors.ImageSharp.Formats.Gif;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Formats.Tiff;
+using SysEncoder = System.Drawing.Imaging.Encoder;
 
 namespace ColdNet.Modules.GraphicsConversion;
 
@@ -17,9 +15,11 @@ public class ConvertGraphicSettings
 /// <summary>
 /// Converts a single raster image between formats (TIFF/PNG/JPEG/BMP/GIF) - the ColdNet
 /// equivalent of DCCONVGRAFIC. The target format is taken from the module's configured output
-/// file extension.
+/// file extension. Built on <c>System.Drawing.Common</c> (MIT, Windows-only) instead of a
+/// third-party imaging library to keep this module's dependencies MIT-licensed.
 /// </summary>
 [ModuleDefinition("ConvertGraphic", ModuleCategory.GraphicsConversion, "Convert Graphic", "Converts an image between TIFF/PNG/JPEG/BMP/GIF.", OriginalModule = "DCCONVGRAFIC", SettingsType = typeof(ConvertGraphicSettings))]
+[SupportedOSPlatform("windows")]
 public class ConvertGraphicModule : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)
@@ -32,36 +32,38 @@ public class ConvertGraphicModule : IColdModule
             return ModuleExecutionResult.Fail($"Input file not found: {inputPath}");
         }
 
+        var outputPath = context.GetOutputPath();
+        var targetExtension = Path.GetExtension(outputPath).TrimStart('.').ToLowerInvariant();
+        if (targetExtension is not ("png" or "jpg" or "jpeg" or "bmp" or "gif" or "tif" or "tiff"))
+        {
+            return ModuleExecutionResult.Fail($"Unsupported target format: .{targetExtension}");
+        }
+
         await context.BackupSourceFilesAsync(cancellationToken);
 
-        var outputPath = context.GetOutputPath();
         Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
 
-        using var image = await Image.LoadAsync(inputPath, cancellationToken);
-
-        var targetExtension = Path.GetExtension(outputPath).TrimStart('.').ToLowerInvariant();
-
-        switch (targetExtension)
+        using (var image = Image.FromFile(inputPath))
         {
-            case "png":
-                await image.SaveAsPngAsync(outputPath, cancellationToken);
-                break;
-            case "jpg":
-            case "jpeg":
-                await image.SaveAsJpegAsync(outputPath, new JpegEncoder { Quality = settings.JpegQuality }, cancellationToken);
-                break;
-            case "bmp":
-                await image.SaveAsBmpAsync(outputPath, cancellationToken);
-                break;
-            case "gif":
-                await image.SaveAsGifAsync(outputPath, cancellationToken);
-                break;
-            case "tif":
-            case "tiff":
-                await image.SaveAsTiffAsync(outputPath, new TiffEncoder(), cancellationToken);
-                break;
-            default:
-                return ModuleExecutionResult.Fail($"Unsupported target format: .{targetExtension}");
+            switch (targetExtension)
+            {
+                case "png":
+                    image.Save(outputPath, ImageFormat.Png);
+                    break;
+                case "jpg":
+                case "jpeg":
+                    SaveJpeg(image, outputPath, settings.JpegQuality);
+                    break;
+                case "bmp":
+                    image.Save(outputPath, ImageFormat.Bmp);
+                    break;
+                case "gif":
+                    image.Save(outputPath, ImageFormat.Gif);
+                    break;
+                default: // tif/tiff
+                    image.Save(outputPath, ImageFormat.Tiff);
+                    break;
+            }
         }
 
         if (context.Common.DeleteSourceFile)
@@ -70,5 +72,13 @@ public class ConvertGraphicModule : IColdModule
         }
 
         return ModuleExecutionResult.Ok();
+    }
+
+    private static void SaveJpeg(Image image, string outputPath, int quality)
+    {
+        var encoder = ImageCodecInfo.GetImageEncoders().First(c => c.FormatID == ImageFormat.Jpeg.Guid);
+        using var encoderParams = new EncoderParameters(1);
+        encoderParams.Param[0] = new EncoderParameter(SysEncoder.Quality, (long)Math.Clamp(quality, 0, 100));
+        image.Save(outputPath, encoder, encoderParams);
     }
 }

@@ -1,7 +1,6 @@
+using System.Drawing;
+using System.Runtime.Versioning;
 using ColdNet.Core.Modules;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Tiff;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace ColdNet.Modules.GraphicsConversion;
 
@@ -13,12 +12,14 @@ public class MultiPageTiffSettings
 
 /// <summary>
 /// Combines several single-page images sharing the job's prefix into one multi-page TIFF - the
-/// ColdNet equivalent of DCMULTIPAGE.
+/// ColdNet equivalent of DCMULTIPAGE. Built on <c>System.Drawing.Common</c> (MIT, Windows-only)
+/// instead of a third-party imaging library to keep this module's dependencies MIT-licensed.
 /// </summary>
 [ModuleDefinition("MultiPageTiff", ModuleCategory.GraphicsConversion, "Multi-page TIFF", "Combines single-page images into one multi-page TIFF.", OriginalModule = "DCMULTIPAGE", SettingsType = typeof(MultiPageTiffSettings))]
+[SupportedOSPlatform("windows")]
 public class MultiPageTiffModule : IColdModule
 {
-    public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)
+    public Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)
     {
         var settings = context.GetSettings<MultiPageTiffSettings>();
         var mask = settings.SourceFileMask.Replace("{prefix}", context.Job.FilePrefix);
@@ -29,22 +30,30 @@ public class MultiPageTiffModule : IColdModule
 
         if (files.Count == 0)
         {
-            return ModuleExecutionResult.Fail($"No source pages matched '{mask}' in {context.InputDirectory}");
+            return Task.FromResult(ModuleExecutionResult.Fail($"No source pages matched '{mask}' in {context.InputDirectory}"));
         }
 
         var outputPath = context.GetOutputPath();
         Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
 
-        using var target = await Image.LoadAsync<Rgba32>(files[0], cancellationToken);
-
-        for (var i = 1; i < files.Count; i++)
+        var pages = new List<Bitmap>(files.Count);
+        try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            using var page = await Image.LoadAsync<Rgba32>(files[i], cancellationToken);
-            target.Frames.AddFrame(page.Frames.RootFrame);
-        }
+            foreach (var file in files)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                pages.Add(new Bitmap(file));
+            }
 
-        await target.SaveAsTiffAsync(outputPath, new TiffEncoder(), cancellationToken);
+            GdiTiff.WriteFrames(outputPath, pages);
+        }
+        finally
+        {
+            foreach (var page in pages)
+            {
+                page.Dispose();
+            }
+        }
 
         if (context.Common.DeleteSourceFile)
         {
@@ -54,6 +63,6 @@ public class MultiPageTiffModule : IColdModule
             }
         }
 
-        return ModuleExecutionResult.Ok();
+        return Task.FromResult(ModuleExecutionResult.Ok());
     }
 }

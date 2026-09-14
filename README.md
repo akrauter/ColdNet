@@ -126,7 +126,11 @@ variables (`ColdNet__EdmVault__RestApi__Password`) for anything beyond local dev
 - **Module settings are edited as raw JSON** in the admin UI (with a "load default template"
   helper), rather than a bespoke form per module - a reasonable framework-v1 tradeoff given the
   number of modules; a typed settings form per module is a natural next step.
-- **`SixLabors.ImageSharp`** (used by the graphics-conversion modules) is licensed under the Six
-  Labors Split License, not Apache 2.0/MIT - free for small businesses/open source, but check
-  https://sixlabors.com/pricing/ before using ColdNet's graphics modules commercially at scale.
-  Swap in `Magick.NET` (Apache 2.0) in `ColdNet.Modules/GraphicsConversion` if that's a blocker.
+- **Third-party licenses**: every `ColdNet.Modules`/`ColdNet.EdmVault` dependency is MIT-licensed
+  (`System.Drawing.Common`, `PDFsharp`) except `ZXing.Net` (Apache-2.0, used for barcode
+  decoding in `BarcodeSplit`) - both are free/no-payment-required, unlike the Six Labors Split
+  License `SixLabors.ImageSharp` originally used here (dropped for exactly that reason). Because
+  the graphics-conversion and barcode-splitting modules are built on `System.Drawing.Common`
+  (GDI+), they only run on **Windows** - that's an explicit tradeoff for staying MIT-licensed and
+  keeping solid multi-page TIFF support, not an oversight; see
+  `ColdNet.Modules/GraphicsConversion/GdiTiff.cs`.
