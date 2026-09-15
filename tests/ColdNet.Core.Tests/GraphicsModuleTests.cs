@@ -1,17 +1,14 @@
-using System.Drawing;
-using System.Runtime.Versioning;
 using ColdNet.Core.Domain;
 using ColdNet.Core.Modules;
 using ColdNet.Modules.GraphicsConversion;
+using ImageMagick;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ColdNet.Core.Tests;
 
 /// <summary>
-/// Covers the System.Drawing.Common-based graphics modules (swapped in for the originally used
-/// SixLabors.ImageSharp to keep every ColdNet.Modules dependency MIT-licensed).
+/// Covers the Magick.NET-based graphics modules (Apache-2.0, cross-platform / Linux Docker compatible).
 /// </summary>
-[SupportedOSPlatform("windows")]
 public class GraphicsModuleTests : IDisposable
 {
     private readonly string _dir = Path.Combine(Path.GetTempPath(), $"coldnet-gfx-test-{Guid.NewGuid():N}");
@@ -22,9 +19,9 @@ public class GraphicsModuleTests : IDisposable
     public async Task ConvertGraphicModule_converts_png_to_jpeg()
     {
         var inputPath = Path.Combine(_dir, "PAGE01.png");
-        using (var bmp = new Bitmap(10, 10))
+        using (var image = new MagickImage(MagickColors.White, 10, 10))
         {
-            bmp.Save(inputPath, System.Drawing.Imaging.ImageFormat.Png);
+            image.Write(inputPath, MagickFormat.Png);
         }
 
         var job = new Job { FilePrefix = "PAGE01", WorkDirectory = _dir };
@@ -40,8 +37,8 @@ public class GraphicsModuleTests : IDisposable
         Assert.True(result.Success);
         var outputPath = Path.Combine(_dir, "PAGE01.jpg");
         Assert.True(File.Exists(outputPath));
-        using var converted = Image.FromFile(outputPath);
-        Assert.Equal(10, converted.Width);
+        using var converted = new MagickImage(outputPath);
+        Assert.Equal(10, (int)converted.Width);
     }
 
     [Fact]
@@ -49,8 +46,8 @@ public class GraphicsModuleTests : IDisposable
     {
         for (var i = 1; i <= 3; i++)
         {
-            using var bmp = new Bitmap(5, 5);
-            bmp.Save(Path.Combine(_dir, $"DOC01_{i}.tif"), System.Drawing.Imaging.ImageFormat.Tiff);
+            using var image = new MagickImage(MagickColors.White, 5, 5);
+            image.Write(Path.Combine(_dir, $"DOC01_{i}.tif"), MagickFormat.Tiff);
         }
 
         var job = new Job { FilePrefix = "DOC01", WorkDirectory = _dir };
@@ -66,9 +63,8 @@ public class GraphicsModuleTests : IDisposable
 
         Assert.True(result.Success);
         var outputPath = Path.Combine(_dir, "DOC01.tif");
-        using var combined = Image.FromFile(outputPath);
-        var dimension = new System.Drawing.Imaging.FrameDimension(combined.FrameDimensionsList[0]);
-        Assert.Equal(3, combined.GetFrameCount(dimension));
+        using var combined = new MagickImageCollection(outputPath);
+        Assert.Equal(3, combined.Count);
     }
 
     public void Dispose()

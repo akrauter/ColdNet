@@ -70,7 +70,7 @@ always available in the running app at **/modules**.
 
 | d.cold module | ColdNet module | Status |
 |---|---|---|
-| DCCONVGRAFIC | `ConvertGraphic` | ✅ implemented (TIFF/PNG/JPEG/BMP/GIF via System.Drawing.Common, MIT, Windows-only) |
+| DCCONVGRAFIC | `ConvertGraphic` | ✅ implemented (TIFF/PNG/JPEG/BMP/GIF via Magick.NET, Apache-2.0, cross-platform) |
 | DCMULTIPAGE, DCMULTIPAGEADV, DCMULTIPAGEEXT | `MultiPageTiff` | ✅ implemented |
 | DCPDFCONCAT, DCAPPENDPDF | `PdfConcat` | ✅ implemented |
 | DCOFFICE2PDF | `OfficeToPdf` | ✅ implemented (via LibreOffice headless instead of MS Office automation) |

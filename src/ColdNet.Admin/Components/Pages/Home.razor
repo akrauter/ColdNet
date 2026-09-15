@@ -1,5 +1,8 @@
 @page "/"
 @rendermode InteractiveServer
+@using System.Text
+@using ColdNet.Core.ExportImport
+@using Microsoft.AspNetCore.Components.Forms
 @inject IDbContextFactory<ColdNetDbContext> DbFactory
 @inject NavigationManager Nav
 
@@ -7,8 +10,73 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1>Process groups</h1>
-    <button class="btn btn-primary" @onclick="() => _showNewGroup = !_showNewGroup">New group</button>
+    <div>
+        <button class="btn btn-outline-secondary me-2" @onclick="ToggleImportModal">Import</button>
+        <button class="btn btn-primary" @onclick="() => { _showNewGroup = !_showNewGroup; if (_showNewGroup) _showImport = false; }">New group</button>
+    </div>
 </div>
+
+@if (_showImport)
+{
+    <div class="card mb-4 border-primary">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Import process chain or group</h5>
+            <button type="button" class="btn-close" aria-label="Close" @onclick="CloseImport"></button>
+        </div>
+        <div class="card-body">
+            @if (!string.IsNullOrEmpty(_importError))
+            {
+                <div class="alert alert-danger">@_importError</div>
+            }
+            @if (!string.IsNullOrEmpty(_importSuccessMessage))
+            {
+                <div class="alert alert-success">@_importSuccessMessage</div>
+            }
+
+            <div class="mb-3">
+                <label class="form-label">Select JSON file or paste JSON configuration below:</label>
+                <InputFile OnChange="HandleImportFileSelected" class="form-control mb-2" accept=".json" />
+                <textarea class="form-control font-monospace" rows="5" placeholder="Paste JSON here..." value="@_importJson" @oninput="OnImportJsonInput"></textarea>
+            </div>
+
+            @if (_parsedImportResult != null && _parsedImportResult.Success)
+            {
+                <div class="alert alert-info">
+                    @if (_parsedImportResult.Type == ImportPackageType.Group && _parsedImportResult.Group != null)
+                    {
+                        <div><strong>Detected Process Group:</strong> @_parsedImportResult.Group.Name (@_parsedImportResult.Group.Chains.Count chain(s))</div>
+                        @if (!string.IsNullOrWhiteSpace(_parsedImportResult.Group.Description))
+                        {
+                            <div class="small text-muted">@_parsedImportResult.Group.Description</div>
+                        }
+                    }
+                    else if (_parsedImportResult.Type == ImportPackageType.Chain && _parsedImportResult.Chain != null)
+                    {
+                        <div><strong>Detected Process Chain:</strong> @_parsedImportResult.Chain.Name (@_parsedImportResult.Chain.Modules.Count module(s))</div>
+                        <div class="small text-muted">Worker: @_parsedImportResult.Chain.WorkerName</div>
+                        <div class="mt-2">
+                            <label class="form-label">Target Process Group:</label>
+                            <select class="form-select" @bind="_importTargetGroupId">
+                                @if (_groups != null)
+                                {
+                                    @foreach (var g in _groups)
+                                    {
+                                        <option value="@g.Id">@g.Name @(g.IsDefault ? "(default)" : "")</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-outline-secondary" @onclick="CloseImport">Cancel</button>
+                <button type="button" class="btn btn-success" disabled="@(_parsedImportResult == null || !_parsedImportResult.Success)" @onclick="ExecuteImportAsync">Import now</button>
+            </div>
+        </div>
+    </div>
+}
 
 @if (_showNewGroup)
 {
@@ -62,6 +130,8 @@ else
                 </div>
                 <div>
                     <button class="btn btn-sm btn-outline-primary" @onclick="() => ToggleNewChain(group.Id)">New chain</button>
+                    <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="() => OpenImportForGroup(group.Id)">Import chain</button>
+                    <a href="/api/export/groups/@group.Id" class="btn btn-sm btn-outline-secondary ms-2" download="@($"{group.Name}.coldgroup.json")">Export group</a>
                     @if (!group.IsDefault)
                     {
                         <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteGroupAsync(group.Id)">Delete</button>
@@ -98,10 +168,11 @@ else
                             <span class="text-muted ms-2">worker: @chain.WorkerName</span>
                             <span class="text-muted ms-2">@chain.Modules.Count module(s)</span>
                         </div>
-                        <div>
+                        <div class="d-flex align-items-center">
                             <span class="badge bg-light text-dark border me-1" title="Ready">R: @counts.Ready</span>
                             <span class="badge bg-light text-dark border me-1" title="Working">W: @counts.Working</span>
-                            <span class="badge @(counts.Error > 0 ? "bg-danger" : "bg-light text-dark border")" title="Error">E: @counts.Error</span>
+                            <span class="badge @(counts.Error > 0 ? "bg-danger" : "bg-light text-dark border") me-2" title="Error">E: @counts.Error</span>
+                            <a href="/api/export/chains/@chain.Id" class="btn btn-sm btn-outline-secondary py-0 px-2" download="@($"{chain.Name}.coldchain.json")" @onclick:stopPropagation="true" title="Export chain">Export</a>
                         </div>
                     </li>
                 }
@@ -138,6 +209,13 @@ else
     private Guid? _newChainGroupId;
     private string _newChainName = string.Empty;
     private string _newChainWorkerName = "default";
+
+    private bool _showImport;
+    private string _importJson = string.Empty;
+    private Guid? _importTargetGroupId;
+    private ImportResult? _parsedImportResult;
+    private string? _importError;
+    private string? _importSuccessMessage;
 
     private enum GroupStatus { Grey, Yellow, Red, Green }
     private enum ChainStatus { Grey, Yellow, Red, Green }
@@ -232,6 +310,133 @@ else
                     : anyRunning
                         ? GroupStatus.Green
                         : GroupStatus.Yellow;
+        }
+    }
+
+    private void ToggleImportModal()
+    {
+        _showImport = !_showImport;
+        if (_showImport)
+        {
+            _showNewGroup = false;
+            _newChainGroupId = null;
+            _importTargetGroupId = _groups?.FirstOrDefault()?.Id;
+            _importError = null;
+            _importSuccessMessage = null;
+            _importJson = string.Empty;
+            _parsedImportResult = null;
+        }
+    }
+
+    private void OpenImportForGroup(Guid groupId)
+    {
+        _showImport = true;
+        _showNewGroup = false;
+        _newChainGroupId = null;
+        _importTargetGroupId = groupId;
+        _importError = null;
+        _importSuccessMessage = null;
+        _importJson = string.Empty;
+        _parsedImportResult = null;
+    }
+
+    private void CloseImport()
+    {
+        _showImport = false;
+        _importJson = string.Empty;
+        _parsedImportResult = null;
+        _importError = null;
+        _importSuccessMessage = null;
+    }
+
+    private async Task HandleImportFileSelected(InputFileChangeEventArgs e)
+    {
+        _importError = null;
+        _importSuccessMessage = null;
+        try
+        {
+            var file = e.File;
+            if (file == null) return;
+            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+            using var reader = new StreamReader(stream, Encoding.UTF8);
+            _importJson = await reader.ReadToEndAsync();
+            ParseImportJson();
+        }
+        catch (Exception ex)
+        {
+            _importError = $"Error reading file: {ex.Message}";
+            _parsedImportResult = null;
+        }
+    }
+
+    private void OnImportJsonInput(ChangeEventArgs e)
+    {
+        _importJson = e.Value?.ToString() ?? string.Empty;
+        ParseImportJson();
+    }
+
+    private void ParseImportJson()
+    {
+        _importError = null;
+        _importSuccessMessage = null;
+        if (string.IsNullOrWhiteSpace(_importJson))
+        {
+            _parsedImportResult = null;
+            return;
+        }
+
+        var targetId = _importTargetGroupId ?? _groups?.FirstOrDefault()?.Id ?? Guid.Empty;
+        _parsedImportResult = ProcessExportImportService.Import(_importJson, targetId);
+        if (!_parsedImportResult.Success)
+        {
+            _importError = _parsedImportResult.ErrorMessage ?? "Could not parse JSON configuration.";
+        }
+    }
+
+    private async Task ExecuteImportAsync()
+    {
+        if (_parsedImportResult == null || !_parsedImportResult.Success)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (_parsedImportResult.Type == ImportPackageType.Group && _parsedImportResult.Group != null)
+        {
+            var group = _parsedImportResult.Group;
+            db.ProcessGroups.Add(group);
+            await db.SaveChangesAsync();
+
+            _importSuccessMessage = $"Process Group '{group.Name}' imported successfully with {group.Chains.Count} chain(s)!";
+            _importJson = string.Empty;
+            _parsedImportResult = null;
+            await LoadAsync();
+        }
+        else if (_parsedImportResult.Type == ImportPackageType.Chain && _parsedImportResult.Chain != null)
+        {
+            var targetGroupId = _importTargetGroupId;
+            if (targetGroupId == null || targetGroupId == Guid.Empty)
+            {
+                var defaultGroup = _groups?.FirstOrDefault(g => g.IsDefault) ?? _groups?.FirstOrDefault();
+                targetGroupId = defaultGroup?.Id;
+            }
+
+            if (targetGroupId == null || targetGroupId == Guid.Empty)
+            {
+                _importError = "Please select a target process group.";
+                return;
+            }
+
+            var chain = _parsedImportResult.Chain;
+            chain.ProcessGroupId = targetGroupId.Value;
+            db.ProcessChains.Add(chain);
+            await db.SaveChangesAsync();
+
+            _importSuccessMessage = $"Process Chain '{chain.Name}' imported successfully!";
+            _importJson = string.Empty;
+            _parsedImportResult = null;
+            await LoadAsync();
         }
     }
 

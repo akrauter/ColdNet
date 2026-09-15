@@ -1,0 +1,30 @@
+﻿services:
+  coldnet-admin:
+    build:
+      context: .
+      dockerfile: src/ColdNet.Admin/Dockerfile
+    container_name: coldnet-admin
+    ports:
+      - "5202:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/coldnet.db
+    volumes:
+      - coldnet-data:/app/data
+    restart: unless-stopped
+
+  coldnet-worker:
+    build:
+      context: .
+      dockerfile: src/ColdNet.Worker/Dockerfile
+    container_name: coldnet-worker
+    environment:
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/coldnet.db
+      - ColdNet__Worker__WorkerName=default
+    volumes:
+      - coldnet-data:/app/data
+    restart: unless-stopped
+    depends_on:
+      - coldnet-admin
+
+volumes:
+  coldnet-data:

@@ -51,6 +51,15 @@ dotnet run --project src/ColdNet.Worker/ColdNet.Worker.csproj  # background proc
 
 Both apply pending EF Core migrations and seed the built-in `default` process group on startup.
 
+### Or: Docker / Docker Compose (Linux)
+
+You can run both Admin and Worker in Linux containers via Docker Compose:
+
+```bash
+docker compose up -d
+```
+Admin UI will be accessible at http://localhost:5202. The Worker container includes headless LibreOffice for Office-to-PDF conversion (`OfficeToPdf`).
+
 ### Or: download a ready-to-run release
 
 Every push to `master` that passes CI publishes a new
@@ -139,11 +148,5 @@ variables (`ColdNet__EdmVault__RestApi__Password`) for anything beyond local dev
 - **Module settings are edited as raw JSON** in the admin UI (with a "load default template"
   helper), rather than a bespoke form per module - a reasonable framework-v1 tradeoff given the
   number of modules; a typed settings form per module is a natural next step.
-- **Third-party licenses**: every `ColdNet.Modules`/`ColdNet.EdmVault` dependency is MIT-licensed
-  (`System.Drawing.Common`, `PDFsharp`) except `ZXing.Net` (Apache-2.0, used for barcode
-  decoding in `BarcodeSplit`) - both are free/no-payment-required, unlike the Six Labors Split
-  License `SixLabors.ImageSharp` originally used here (dropped for exactly that reason). Because
-  the graphics-conversion and barcode-splitting modules are built on `System.Drawing.Common`
-  (GDI+), they only run on **Windows** - that's an explicit tradeoff for staying MIT-licensed and
-  keeping solid multi-page TIFF support, not an oversight; see
-  `ColdNet.Modules/GraphicsConversion/GdiTiff.cs`.
+- **Third-party licenses & cross-platform support**: every `ColdNet.Modules`/`ColdNet.EdmVault` dependency is permissively licensed
+  (`Magick.NET` and `ZXing.Net` are Apache-2.0, `PDFsharp` is MIT) - all are free and approved for commercial use without royalty fees, unlike the Six Labors Split License `SixLabors.ImageSharp` originally used here (dropped for exactly that reason). With `Magick.NET` (replacing the Windows-only `System.Drawing.Common`), image conversion, multi-page TIFF processing, and barcode splitting are fully cross-platform and run natively on Linux and in Docker containers.

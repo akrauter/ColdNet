@@ -1,5 +1,4 @@
-using System.Drawing;
-using System.Runtime.Versioning;
+using ImageMagick;
 using ColdNet.Core.Modules;
 
 namespace ColdNet.Modules.GraphicsConversion;
@@ -12,11 +11,9 @@ public class MultiPageTiffSettings
 
 /// <summary>
 /// Combines several single-page images sharing the job's prefix into one multi-page TIFF - the
-/// ColdNet equivalent of DCMULTIPAGE. Built on <c>System.Drawing.Common</c> (MIT, Windows-only)
-/// instead of a third-party imaging library to keep this module's dependencies MIT-licensed.
+/// ColdNet equivalent of DCMULTIPAGE. Built on <c>Magick.NET</c> (Apache-2.0, cross-platform).
 /// </summary>
 [ModuleDefinition("MultiPageTiff", ModuleCategory.GraphicsConversion, "Multi-page TIFF", "Combines single-page images into one multi-page TIFF.", OriginalModule = "DCMULTIPAGE", SettingsType = typeof(MultiPageTiffSettings))]
-[SupportedOSPlatform("windows")]
 public class MultiPageTiffModule : IColdModule
 {
     public Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)
@@ -36,23 +33,20 @@ public class MultiPageTiffModule : IColdModule
         var outputPath = context.GetOutputPath();
         Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
 
-        var pages = new List<Bitmap>(files.Count);
-        try
+        using (var collection = new MagickImageCollection())
         {
             foreach (var file in files)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                pages.Add(new Bitmap(file));
+                var page = new MagickImage(file)
+                {
+                    Format = MagickFormat.Tiff
+                };
+                page.Settings.Compression = CompressionMethod.LZW;
+                collection.Add(page);
             }
 
-            GdiTiff.WriteFrames(outputPath, pages);
-        }
-        finally
-        {
-            foreach (var page in pages)
-            {
-                page.Dispose();
-            }
+            collection.Write(outputPath, MagickFormat.Tiff);
         }
 
         if (context.Common.DeleteSourceFile)
