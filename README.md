@@ -35,7 +35,10 @@ docs/
   PLACEHOLDERS.md    {prefix}/{input}/{Now:...} etc. reference + worked examples (also at /help)
   ENCRYPTION.md       How secrets are encrypted at rest + how to use ColdNet.SecretTool
 deploy/local-release/ Files bundled into the release packages (Start-*.bat/start-*.sh, README*.txt)
-.github/workflows/   CI (build+test) and CD (win-x64 + linux-x64 local-execution releases from master)
+docker-compose.yml   Admin + Worker in Linux containers, see "Running it" below
+src/ColdNet.Admin/Dockerfile, src/ColdNet.Worker/Dockerfile  Built by docker-compose.yml and CI
+.github/workflows/   CI (build+test) and CD (win-x64 + linux-x64 local-execution releases, plus
+                     Docker Hub image pushes, all from master)
 data/                Shared SQLite database file (dev default)
 ```
 
@@ -88,7 +91,7 @@ Every push to `master` that passes CI publishes a new
   instead of the `.bat` files (already executable). See `deploy/local-release/README-linux.txt`
   (bundled in the archive) for details, including the small set of external dependencies some
   modules need on a bare Linux host (`TextToPdf` needs any installed TTF font, `OfficeToPdf` needs
-  LibreOffice) - the Docker images below already carry them.
+  LibreOffice) - the Docker images above already carry them.
 
 See `.github/workflows/ci-release.yml` for the pipeline itself: it builds and tests on every
 push/PR (on `ubuntu-latest`, so a green run is real proof of Linux compatibility, not just an
