@@ -1,9 +1,11 @@
 using System.Text;
 using ColdNet.Admin.Components;
 using ColdNet.Core.ExportImport;
+using ColdNet.Core.Security;
 using ColdNet.Data;
 using ColdNet.EdmVault;
 using ColdNet.Engine;
+using ColdNet.Engine.Modules;
 using ColdNet.Engine.Scheduling;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +15,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddColdNetDataAccess(builder.Configuration);
+builder.Services.AddColdNetSecretProtection(builder.Configuration);
 builder.Services.AddEdmVault(builder.Configuration);
 builder.Services.AddColdNetEngine(
     typeof(ColdNet.Modules.Import.ColdImportModule).Assembly,
@@ -35,7 +38,7 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.MapGet("/api/export/chains/{id:guid}", async (Guid id, IDbContextFactory<ColdNetDbContext> dbFactory) =>
+app.MapGet("/api/export/chains/{id:guid}", async (Guid id, IDbContextFactory<ColdNetDbContext> dbFactory, ModuleRegistry registry) =>
 {
     await using var db = await dbFactory.CreateDbContextAsync();
     var chain = await db.ProcessChains
@@ -47,7 +50,9 @@ app.MapGet("/api/export/chains/{id:guid}", async (Guid id, IDbContextFactory<Col
         return Results.NotFound();
     }
 
-    var json = ProcessExportImportService.ExportChain(chain);
+    var dto = ProcessExportImportService.ToDto(chain);
+    RedactSensitiveSettings(dto, registry);
+    var json = System.Text.Json.JsonSerializer.Serialize(dto, ProcessExportImportService.SerializerOptions);
     var safeName = string.Join("_", chain.Name.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries));
     if (string.IsNullOrWhiteSpace(safeName)) safeName = "chain";
 
@@ -57,7 +62,7 @@ app.MapGet("/api/export/chains/{id:guid}", async (Guid id, IDbContextFactory<Col
         fileDownloadName: $"{safeName}.coldchain.json");
 });
 
-app.MapGet("/api/export/groups/{id:guid}", async (Guid id, IDbContextFactory<ColdNetDbContext> dbFactory) =>
+app.MapGet("/api/export/groups/{id:guid}", async (Guid id, IDbContextFactory<ColdNetDbContext> dbFactory, ModuleRegistry registry) =>
 {
     await using var db = await dbFactory.CreateDbContextAsync();
     var group = await db.ProcessGroups
@@ -70,7 +75,12 @@ app.MapGet("/api/export/groups/{id:guid}", async (Guid id, IDbContextFactory<Col
         return Results.NotFound();
     }
 
-    var json = ProcessExportImportService.ExportGroup(group);
+    var dto = ProcessExportImportService.ToDto(group);
+    foreach (var chainDto in dto.Chains)
+    {
+        RedactSensitiveSettings(chainDto, registry);
+    }
+    var json = System.Text.Json.JsonSerializer.Serialize(dto, ProcessExportImportService.SerializerOptions);
     var safeName = string.Join("_", group.Name.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries));
     if (string.IsNullOrWhiteSpace(safeName)) safeName = "group";
 
@@ -87,3 +97,15 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+// Exported chain/group JSON is a file on disk that might get shared, committed, or attached to a
+// ticket - blank out passwords/passphrases rather than either leaking plaintext or exporting
+// ciphertext that's only decryptable with this instance's own encryption key.
+static void RedactSensitiveSettings(ChainExportDto chain, ModuleRegistry registry)
+{
+    foreach (var module in chain.Modules)
+    {
+        var settingsType = registry.Find(module.ModuleTypeName)?.SettingsType;
+        module.SettingsJson = SettingsEncryption.RedactForExport(module.SettingsJson, settingsType);
+    }
+}

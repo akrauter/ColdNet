@@ -72,13 +72,16 @@ jobs:
       - name: Publish ColdNet.Worker (win-x64, self-contained)
         run: dotnet publish src/ColdNet.Worker/ColdNet.Worker.csproj --configuration Release --runtime win-x64 --self-contained true --output publish/Worker
 
+      - name: Publish ColdNet.SecretTool (win-x64, self-contained)
+        run: dotnet publish src/ColdNet.SecretTool/ColdNet.SecretTool.csproj --configuration Release --runtime win-x64 --self-contained true --output publish/SecretTool
+
       - name: Assemble local-execution package
         shell: pwsh
         run: |
           Copy-Item deploy/local-release/Start-Admin.bat publish/
           Copy-Item deploy/local-release/Start-Worker.bat publish/
           Copy-Item deploy/local-release/README.txt publish/
-          Compress-Archive -Path publish/Admin, publish/Worker, publish/Start-Admin.bat, publish/Start-Worker.bat, publish/README.txt `
+          Compress-Archive -Path publish/Admin, publish/Worker, publish/SecretTool, publish/Start-Admin.bat, publish/Start-Worker.bat, publish/README.txt `
             -DestinationPath ColdNet-win-x64-${{ steps.version.outputs.version }}.zip
 
       - name: Create GitHub release

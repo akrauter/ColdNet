@@ -1,4 +1,5 @@
 ﻿using ColdNet.Core.Domain;
+using ColdNet.Core.Security;
 using ColdNet.Data;
 using ColdNet.Engine.Scheduling;
 using Microsoft.EntityFrameworkCore;
@@ -59,6 +60,7 @@ public class SampleWorkflowTests : IDisposable
             services.AddLogging();
             services.AddDbContextFactory<ColdNetDbContext>(o => o.UseSqlite($"Data Source={_dbPath};Pooling=False"));
             services.AddColdNetEngine(typeof(ColdNet.Modules.Import.ColdImportModule).Assembly);
+            services.AddSingleton<ISecretProtector>(NullSecretProtector.Instance);
             services.Configure<ChainSchedulerOptions>(o => o.WorkerName = "default");
 
             await using var provider = services.BuildServiceProvider();

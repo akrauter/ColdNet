@@ -1,3 +1,4 @@
+using ColdNet.Core.Security;
 using ColdNet.Data;
 using ColdNet.Engine;
 using ColdNet.Engine.Scheduling;
@@ -7,6 +8,7 @@ using ColdNet.Worker;
 var builder = Host.CreateApplicationBuilder(args);
 
 builder.Services.AddColdNetDataAccess(builder.Configuration);
+builder.Services.AddColdNetSecretProtection(builder.Configuration);
 builder.Services.AddEdmVault(builder.Configuration);
 builder.Services.AddColdNetEngine(
     typeof(ColdNet.Modules.Import.ColdImportModule).Assembly,

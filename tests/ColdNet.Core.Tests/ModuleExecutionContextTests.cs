@@ -1,5 +1,6 @@
 using ColdNet.Core.Domain;
 using ColdNet.Core.Modules;
+using ColdNet.Core.Security;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ColdNet.Core.Tests;
@@ -12,6 +13,48 @@ public class ModuleExecutionContextTests
         var chain = new ProcessChain();
         var moduleInstance = new ModuleInstance { CommonSettings = common };
         return new ModuleExecutionContext(job, chain, moduleInstance, NullLogger.Instance);
+    }
+
+    private class SettingsWithSecret
+    {
+        public string Host { get; set; } = string.Empty;
+
+        [SensitiveValue]
+        public string Password { get; set; } = string.Empty;
+    }
+
+    [Fact]
+    public void GetSettings_decrypts_sensitive_fields_using_the_supplied_protector()
+    {
+        var protector = AesSecretProtector.FromBase64Key(AesSecretProtector.GenerateBase64Key());
+        var job = new Job { FilePrefix = "ABC123", WorkDirectory = @"C:\jobs\work" };
+        var chain = new ProcessChain();
+        var moduleInstance = new ModuleInstance
+        {
+            SettingsJson = $$"""{"Host":"sftp.example.com","Password":"{{protector.Protect("hunter2")}}"}""",
+        };
+        var context = new ModuleExecutionContext(job, chain, moduleInstance, NullLogger.Instance, protector);
+
+        var settings = context.GetSettings<SettingsWithSecret>();
+
+        Assert.Equal("sftp.example.com", settings.Host);
+        Assert.Equal("hunter2", settings.Password);
+    }
+
+    [Fact]
+    public void GetSettings_without_a_protector_treats_stored_value_as_plaintext()
+    {
+        var job = new Job { FilePrefix = "ABC123", WorkDirectory = @"C:\jobs\work" };
+        var chain = new ProcessChain();
+        var moduleInstance = new ModuleInstance
+        {
+            SettingsJson = """{"Host":"sftp.example.com","Password":"hunter2"}""",
+        };
+        var context = new ModuleExecutionContext(job, chain, moduleInstance, NullLogger.Instance);
+
+        var settings = context.GetSettings<SettingsWithSecret>();
+
+        Assert.Equal("hunter2", settings.Password);
     }
 
     [Fact]

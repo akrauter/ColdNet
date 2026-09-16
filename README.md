@@ -28,12 +28,14 @@ src/
   ColdNet.Engine     ModuleRegistry (module discovery) + ChainScheduler (the scheduling loop)
   ColdNet.Worker     Background service host - the "d.cold worker" equivalent
   ColdNet.Admin      Blazor Server admin UI - the "d.cold admin / webadmin" equivalent
+  ColdNet.SecretTool Command-line emergency tool to decrypt stored secrets (passwords, ...)
 tests/
   ColdNet.Core.Tests
   ColdNet.Engine.Tests
 docs/
   MODULES.md         Full d.cold-module -> ColdNet-module mapping table
   PLACEHOLDERS.md    {prefix}/{input}/{Now:...} etc. reference + worked examples (also at /help)
+  ENCRYPTION.md       How secrets are encrypted at rest + how to use ColdNet.SecretTool
 deploy/local-release/ Files bundled into the release zip (Start-*.bat, README.txt)
 .github/workflows/   CI (build+test) and CD (local-execution release from master)
 data/                Shared SQLite database file (dev default)
@@ -67,7 +69,7 @@ Admin UI will be accessible at http://localhost:5202. The Worker container inclu
 Every push to `master` that passes CI publishes a new
 [GitHub release](https://github.com/akrauter/ColdNet/releases) with a
 `ColdNet-win-x64-<version>.zip` asset - a self-contained build (no .NET install required) with
-`Admin/`, `Worker/`, `Start-Admin.bat` and `Start-Worker.bat`. Unzip it, run `Start-Admin.bat`,
+`Admin/`, `Worker/`, `SecretTool/`, `Start-Admin.bat` and `Start-Worker.bat`. Unzip it, run `Start-Admin.bat`,
 open http://localhost:5202, then run `Start-Worker.bat` to actually process chains in the
 background. See `deploy/local-release/README.txt` (bundled in the zip) for details. See
 `.github/workflows/ci-release.yml` for the pipeline itself: it builds and tests on every push/PR,
@@ -150,6 +152,16 @@ regardless of which connector is configured as the default. Both use the module'
 
 Don't commit real credentials into `appsettings.json` - use `dotnet user-secrets` or environment
 variables (`ColdNet__EdmVault__RestApi__Password`) for anything beyond local development.
+
+## Secrets at rest
+
+Module settings fields marked `[SensitiveValue]` (currently `SftpImport`/`SftpExport`'s `Password`
+and `PrivateKeyPassphrase`) are masked in the admin UI (shown as dots, with a Show/Hide toggle) and
+stored AES-256-GCM encrypted in the database - never in plain text. `ColdNet.SecretTool`, a
+command-line tool published alongside Admin and Worker, lets an admin decrypt a value directly
+against the database in an emergency (e.g. no access to the Admin UI). See
+[`docs/ENCRYPTION.md`](docs/ENCRYPTION.md) for how the encryption works, key management/rotation,
+and the tool's commands.
 
 ## Known deviations from d.cold
 

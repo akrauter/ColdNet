@@ -2,8 +2,9 @@ ColdNet - lokale Ausfuehrung (Windows x64)
 ============================================
 
 Enthalten:
-  Admin\   - Weboberflaeche (Prozessgruppen, Ketten, Module, Jobs)
-  Worker\  - Hintergrunddienst, der die Prozessketten tatsaechlich abarbeitet
+  Admin\      - Weboberflaeche (Prozessgruppen, Ketten, Module, Jobs)
+  Worker\     - Hintergrunddienst, der die Prozessketten tatsaechlich abarbeitet
+  SecretTool\ - Notfall-Kommandozeilentool zum Entschluesseln gespeicherter Kennwoerter
   Start-Admin.bat
   Start-Worker.bat
 
@@ -27,5 +28,13 @@ angelegt wird.
 Hinweis: Die Grafik-/Barcode-Module (ConvertGraphic, MultiPageTiff,
 BarcodeSplit) benoetigen Windows (GDI+) und funktionieren nur in diesem
 Windows-x64-Paket.
+
+Kennwoerter (z.B. bei SFTP-Modulen) werden in der Datenbank ausschliesslich
+verschluesselt gespeichert und im Admin nur maskiert angezeigt. Falls ein
+Kennwort im Notfall trotzdem im Klartext gebraucht wird (z.B. ohne Zugriff
+auf das Admin-Webinterface), oeffnet man eine Kommandozeile im SecretTool-
+Ordner und ruft dort z.B. "ColdNet.SecretTool.exe list-modules" bzw.
+"ColdNet.SecretTool.exe decrypt-module <id>" auf. Siehe docs/ENCRYPTION.md
+in der Projekt-Dokumentation fuer Details.
 
 Vollstaendige Dokumentation: https://github.com/akrauter/ColdNet

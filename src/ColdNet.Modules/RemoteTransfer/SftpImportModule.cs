@@ -1,6 +1,7 @@
 using System.Text.Json;
 using ColdNet.Core.Domain;
 using ColdNet.Core.Modules;
+using ColdNet.Core.Security;
 using Microsoft.Extensions.Logging;
 
 namespace ColdNet.Modules.RemoteTransfer;
@@ -28,11 +29,13 @@ public class SftpImportSettings
 
     public string UserName { get; set; } = string.Empty;
 
+    [SensitiveValue]
     public string Password { get; set; } = string.Empty;
 
     /// <summary>SFTP only: path to a private key file, used instead of <see cref="Password"/> when set.</summary>
     public string PrivateKeyPath { get; set; } = string.Empty;
 
+    [SensitiveValue]
     public string PrivateKeyPassphrase { get; set; } = string.Empty;
 
     public int ConnectTimeoutSeconds { get; set; } = 30;

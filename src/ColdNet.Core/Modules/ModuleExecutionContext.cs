@@ -1,6 +1,7 @@
 using System.Text.Json;
 using ColdNet.Core.Domain;
 using ColdNet.Core.Properties;
+using ColdNet.Core.Security;
 using Microsoft.Extensions.Logging;
 
 namespace ColdNet.Core.Modules;
@@ -14,9 +15,11 @@ public sealed class ModuleExecutionContext(
     Job job,
     ProcessChain chain,
     ModuleInstance moduleInstance,
-    ILogger logger)
+    ILogger logger,
+    ISecretProtector? secretProtector = null)
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private readonly ISecretProtector _secretProtector = secretProtector ?? NullSecretProtector.Instance;
 
     public Job Job { get; } = job;
 
@@ -30,7 +33,11 @@ public sealed class ModuleExecutionContext(
 
     public DmsSupportSettings DmsSupport => ModuleInstance.DmsSupport;
 
-    /// <summary>Deserializes the module instance's module-specific settings JSON into <typeparamref name="T"/>.</summary>
+    /// <summary>
+    /// Deserializes the module instance's module-specific settings JSON into <typeparamref name="T"/>,
+    /// transparently decrypting any <see cref="SensitiveValueAttribute"/>-marked field (passwords,
+    /// passphrases, ...) back to plaintext first.
+    /// </summary>
     public T GetSettings<T>() where T : new()
     {
         if (string.IsNullOrWhiteSpace(ModuleInstance.SettingsJson) || ModuleInstance.SettingsJson == "{}")
@@ -38,7 +45,8 @@ public sealed class ModuleExecutionContext(
             return new T();
         }
 
-        return JsonSerializer.Deserialize<T>(ModuleInstance.SettingsJson, JsonOptions) ?? new T();
+        var decrypted = SettingsEncryption.Decrypt(ModuleInstance.SettingsJson, typeof(T), _secretProtector);
+        return JsonSerializer.Deserialize<T>(decrypted, JsonOptions) ?? new T();
     }
 
     public string InputDirectory =>

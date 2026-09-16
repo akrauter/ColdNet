@@ -1,4 +1,5 @@
 using ColdNet.Core.Domain;
+using ColdNet.Core.Security;
 using ColdNet.Data;
 using ColdNet.Engine;
 using ColdNet.Engine.Scheduling;
@@ -24,6 +25,7 @@ public class ChainSchedulerTests : IDisposable
         services.AddLogging();
         services.AddDbContextFactory<ColdNetDbContext>(o => o.UseSqlite($"Data Source={_dbPath};Pooling=False"));
         services.AddColdNetEngine(typeof(ColdImportModule).Assembly);
+        services.AddSingleton<ISecretProtector>(NullSecretProtector.Instance);
         services.Configure<ChainSchedulerOptions>(o => o.WorkerName = "default");
 
         await using var provider = services.BuildServiceProvider();

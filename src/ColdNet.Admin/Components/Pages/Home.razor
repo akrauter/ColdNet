@@ -2,9 +2,11 @@
 @rendermode InteractiveServer
 @using System.Text
 @using ColdNet.Core.ExportImport
+@using ColdNet.Core.Security
 @using Microsoft.AspNetCore.Components.Forms
 @inject IDbContextFactory<ColdNetDbContext> DbFactory
 @inject ModuleRegistry Registry
+@inject ISecretProtector SecretProtector
 @inject NavigationManager Nav
 
 <PageTitle>ColdNet Admin - Process groups</PageTitle>
@@ -415,6 +417,10 @@ else
         if (_parsedImportResult.Type == ImportPackageType.Group && _parsedImportResult.Group != null)
         {
             var group = _parsedImportResult.Group;
+            foreach (var importedChain in group.Chains)
+            {
+                EncryptChainModuleSettings(importedChain);
+            }
             db.ProcessGroups.Add(group);
             await db.SaveChangesAsync();
 
@@ -440,6 +446,7 @@ else
 
             var chain = _parsedImportResult.Chain;
             chain.ProcessGroupId = targetGroupId.Value;
+            EncryptChainModuleSettings(chain);
             db.ProcessChains.Add(chain);
             await db.SaveChangesAsync();
 
@@ -447,6 +454,20 @@ else
             _importJson = string.Empty;
             _parsedImportResult = null;
             await LoadAsync();
+        }
+    }
+
+    /// <summary>
+    /// Imported SettingsJson is plaintext (an export either predates this feature or already
+    /// redacted secrets - either way there's nothing encrypted to decrypt) - encrypt sensitive
+    /// fields before they ever touch the database, same as a normal save in the module editor.
+    /// </summary>
+    private void EncryptChainModuleSettings(ProcessChain chain)
+    {
+        foreach (var module in chain.Modules)
+        {
+            var settingsType = Registry.Find(module.ModuleTypeName)?.SettingsType;
+            module.SettingsJson = SettingsEncryption.Encrypt(module.SettingsJson, settingsType, SecretProtector);
         }
     }
 

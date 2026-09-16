@@ -1,5 +1,6 @@
 using ColdNet.Core.Domain;
 using ColdNet.Core.Modules;
+using ColdNet.Core.Security;
 using ColdNet.Data;
 using ColdNet.Engine.Modules;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,7 @@ public class ChainScheduler(
     IServiceProvider serviceProvider,
     ILoggerFactory loggerFactory,
     IOptions<ChainSchedulerOptions> options,
+    ISecretProtector secretProtector,
     ILogger<ChainScheduler> logger)
 {
     private readonly string _workerName = options.Value.WorkerName;
@@ -151,7 +153,7 @@ public class ChainScheduler(
             await db.SaveChangesAsync(ct);
 
             var module = (IColdModule)serviceProvider.GetRequiredService(catalogEntry.ClrType);
-            var context = new ModuleExecutionContext(job, chain, moduleInstance, moduleLogger);
+            var context = new ModuleExecutionContext(job, chain, moduleInstance, moduleLogger, secretProtector);
 
             ModuleExecutionResult result;
             try

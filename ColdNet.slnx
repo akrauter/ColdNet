@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ColdNet.SecretTool/ColdNet.SecretTool.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ColdNet.Core.Tests/ColdNet.Core.Tests.csproj" />
     <Project Path="tests/ColdNet.Engine.Tests/ColdNet.Engine.Tests.csproj" />

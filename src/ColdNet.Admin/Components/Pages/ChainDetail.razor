@@ -1,9 +1,11 @@
 @page "/chains/{ChainId:guid}"
 @rendermode InteractiveServer
 @using System.Text.Json
+@using ColdNet.Core.Security
 @inject IDbContextFactory<ColdNetDbContext> DbFactory
 @inject ModuleRegistry Registry
 @inject ChainScheduler Scheduler
+@inject ISecretProtector SecretProtector
 @inject NavigationManager Nav
 
 <PageTitle>ColdNet Admin - @(_chain?.Name ?? "Chain")</PageTitle>
@@ -255,7 +257,10 @@ else
         _editAppend = module.CommonSettings.Append;
         _editDmsEnabled = module.DmsSupport.Enabled;
         _editDocumentType = module.DmsSupport.DocumentType ?? string.Empty;
-        _editSettingsJson = string.IsNullOrWhiteSpace(module.SettingsJson) ? "{}" : module.SettingsJson;
+
+        var rawJson = string.IsNullOrWhiteSpace(module.SettingsJson) ? "{}" : module.SettingsJson;
+        var settingsType = Registry.Find(module.ModuleTypeName)?.SettingsType;
+        _editSettingsJson = SettingsEncryption.Decrypt(rawJson, settingsType, SecretProtector);
     }
 
     private void LoadDefaultSettingsTemplate()
@@ -303,7 +308,9 @@ else
         module.CommonSettings.Append = _editAppend;
         module.DmsSupport.Enabled = _editDmsEnabled;
         module.DmsSupport.DocumentType = string.IsNullOrWhiteSpace(_editDocumentType) ? null : _editDocumentType;
-        module.SettingsJson = _editSettingsJson;
+
+        var settingsType = Registry.Find(module.ModuleTypeName)?.SettingsType;
+        module.SettingsJson = SettingsEncryption.Encrypt(_editSettingsJson, settingsType, SecretProtector);
 
         await db.SaveChangesAsync();
 
