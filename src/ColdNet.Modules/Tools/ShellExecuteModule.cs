@@ -8,8 +8,8 @@ public class ShellExecuteSettings
     public string Executable { get; set; } = string.Empty;
 
     /// <summary>
-    /// Arguments with placeholders {input}, {output}, {prefix}, {inputDir}, {outputDir}
-    /// substituted before the process is started.
+    /// Arguments with placeholders {input}, {output}, {prefix}, {inputDir}, {outputDir},
+    /// {fileName}, {extension} substituted before the process is started.
     /// </summary>
     public string Arguments { get; set; } = string.Empty;
 
@@ -39,12 +39,7 @@ public class ShellExecuteModule : IColdModule
         var outputPath = context.GetOutputPath();
         Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
 
-        var arguments = settings.Arguments
-            .Replace("{input}", inputPath)
-            .Replace("{output}", outputPath)
-            .Replace("{prefix}", context.Job.FilePrefix)
-            .Replace("{inputDir}", context.InputDirectory)
-            .Replace("{outputDir}", context.OutputDirectory);
+        var arguments = ResolveArguments(settings.Arguments, context, inputPath, outputPath);
 
         var startInfo = new ProcessStartInfo(settings.Executable, arguments)
         {
@@ -80,6 +75,16 @@ public class ShellExecuteModule : IColdModule
 
         return ModuleExecutionResult.Ok();
     }
+
+    internal static string ResolveArguments(string template, ModuleExecutionContext context, string inputPath, string outputPath) =>
+        template
+            .Replace("{input}", inputPath)
+            .Replace("{output}", outputPath)
+            .Replace("{prefix}", context.Job.FilePrefix)
+            .Replace("{inputDir}", context.InputDirectory)
+            .Replace("{outputDir}", context.OutputDirectory)
+            .Replace("{fileName}", Path.GetFileName(inputPath))
+            .Replace("{extension}", Path.GetExtension(inputPath).TrimStart('.'));
 
     private static void TryKill(Process process)
     {

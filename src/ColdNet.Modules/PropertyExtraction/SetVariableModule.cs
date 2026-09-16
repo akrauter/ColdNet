@@ -7,7 +7,8 @@ public class VariableAssignment
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Literal value; supports the placeholders {JobPrefix}, {Now:format}, {DocumentType}.
+    /// Literal value; supports the placeholders {JobPrefix}, {Now:format}, {DocumentType},
+    /// {FileName}, {Extension}.
     /// </summary>
     public string Value { get; set; } = string.Empty;
 }
@@ -40,8 +41,11 @@ public class SetVariableModule : IColdModule
 
     internal static string ResolvePlaceholders(string value, ModuleExecutionContext context)
     {
+        var inputPath = context.GetInputPath();
         var result = value.Replace("{JobPrefix}", context.Job.FilePrefix);
         result = result.Replace("{DocumentType}", context.DmsSupport.DocumentType ?? string.Empty);
+        result = result.Replace("{FileName}", Path.GetFileName(inputPath));
+        result = result.Replace("{Extension}", Path.GetExtension(inputPath).TrimStart('.'));
 
         var now = DateTimeOffset.Now;
         result = System.Text.RegularExpressions.Regex.Replace(result, @"\{Now(?::([^}]+))?\}", m =>
