@@ -88,7 +88,7 @@ public class ChainScheduler(
         IReadOnlyList<NewJobRequest> discovered;
         try
         {
-            discovered = await module.DiscoverJobsAsync(chain, moduleInstance, moduleLogger, ct);
+            discovered = await module.DiscoverJobsAsync(chain, moduleInstance, moduleLogger, secretProtector, ct);
         }
         catch (Exception ex)
         {

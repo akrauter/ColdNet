@@ -1,4 +1,5 @@
 using ColdNet.Core.Domain;
+using ColdNet.Core.Security;
 using ColdNet.EdmVault;
 using ColdNet.Engine.Modules;
 using ColdNet.Modules.RemoteTransfer;
@@ -51,7 +52,7 @@ public class RemoteTransferModuleTests
             SettingsJson = """{"Host":"sftp.example.com"}""",
         };
 
-        var result = await new SftpImportModule().DiscoverJobsAsync(chain, moduleInstance, NullLogger.Instance, CancellationToken.None);
+        var result = await new SftpImportModule().DiscoverJobsAsync(chain, moduleInstance, NullLogger.Instance, NullSecretProtector.Instance, CancellationToken.None);
 
         Assert.Empty(result);
     }
@@ -66,9 +67,24 @@ public class RemoteTransferModuleTests
             SettingsJson = "{}", // no Host configured
         };
 
-        var result = await new SftpImportModule().DiscoverJobsAsync(chain, moduleInstance, NullLogger.Instance, CancellationToken.None);
+        var result = await new SftpImportModule().DiscoverJobsAsync(chain, moduleInstance, NullLogger.Instance, NullSecretProtector.Instance, CancellationToken.None);
 
         Assert.Empty(result);
+    }
+
+    [Fact]
+    public void SftpImportModule_LoadSettings_decrypts_the_password_and_preserves_the_configured_port()
+    {
+        var protector = AesSecretProtector.FromBase64Key(AesSecretProtector.GenerateBase64Key());
+        var moduleInstance = new ModuleInstance
+        {
+            SettingsJson = $$"""{"Host":"sftp.example.com","Port":2222,"Password":"{{protector.Protect("hunter2")}}"}""",
+        };
+
+        var settings = SftpImportModule.LoadSettings(moduleInstance, protector);
+
+        Assert.Equal("hunter2", settings.Password);
+        Assert.Equal(2222, settings.Port);
     }
 
     [Fact]
@@ -132,7 +148,7 @@ public class RemoteTransferModuleTests
             tokenProvider: null!,
             projectResolver: null!);
 
-        var result = await module.DiscoverJobsAsync(chain, moduleInstance, NullLogger.Instance, CancellationToken.None);
+        var result = await module.DiscoverJobsAsync(chain, moduleInstance, NullLogger.Instance, NullSecretProtector.Instance, CancellationToken.None);
 
         Assert.Empty(result);
     }

@@ -1,5 +1,6 @@
 using ColdNet.Core.Domain;
 using ColdNet.Core.Modules;
+using ColdNet.Core.Security;
 using Microsoft.Extensions.Logging;
 
 namespace ColdNet.Modules.Import;
@@ -33,6 +34,7 @@ public class ColdImportModule : IJobImportModule
         ProcessChain chain,
         ModuleInstance moduleInstance,
         ILogger logger,
+        ISecretProtector secretProtector,
         CancellationToken cancellationToken)
     {
         var common = moduleInstance.CommonSettings;

@@ -4,6 +4,7 @@ using System.Text.Json;
 using ColdNet.Core.Domain;
 using ColdNet.Core.Modules;
 using ColdNet.Core.Properties;
+using ColdNet.Core.Security;
 using ColdNet.EdmVault.RestApi;
 using Microsoft.Extensions.Logging;
 
@@ -43,6 +44,7 @@ public class EdmVaultImportModule(
         ProcessChain chain,
         ModuleInstance moduleInstance,
         ILogger logger,
+        ISecretProtector secretProtector,
         CancellationToken cancellationToken)
     {
         var common = moduleInstance.CommonSettings;

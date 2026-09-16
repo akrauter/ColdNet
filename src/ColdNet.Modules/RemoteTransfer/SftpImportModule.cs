@@ -75,16 +75,17 @@ public class SftpImportModule : IJobImportModule
 {
     private const string StateFileName = ".sftp-import-state.json";
 
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
     public async Task<IReadOnlyList<NewJobRequest>> DiscoverJobsAsync(
         ProcessChain chain,
         ModuleInstance moduleInstance,
         ILogger logger,
+        ISecretProtector secretProtector,
         CancellationToken cancellationToken)
     {
         var common = moduleInstance.CommonSettings;
-        var settings = string.IsNullOrWhiteSpace(moduleInstance.SettingsJson) || moduleInstance.SettingsJson == "{}"
-            ? new SftpImportSettings()
-            : JsonSerializer.Deserialize<SftpImportSettings>(moduleInstance.SettingsJson) ?? new SftpImportSettings();
+        var settings = LoadSettings(moduleInstance, secretProtector);
 
         var results = new List<NewJobRequest>();
 
@@ -189,6 +190,13 @@ public class SftpImportModule : IJobImportModule
 
         return results;
     }
+
+    internal static SftpImportSettings LoadSettings(ModuleInstance moduleInstance, ISecretProtector secretProtector) =>
+        string.IsNullOrWhiteSpace(moduleInstance.SettingsJson) || moduleInstance.SettingsJson == "{}"
+            ? new SftpImportSettings()
+            : JsonSerializer.Deserialize<SftpImportSettings>(
+                SettingsEncryption.Decrypt(moduleInstance.SettingsJson, typeof(SftpImportSettings), secretProtector),
+                JsonOptions) ?? new SftpImportSettings();
 
     private static async Task<HashSet<string>> LoadSeenPathsAsync(string path, CancellationToken cancellationToken)
     {

@@ -1,4 +1,5 @@
 using ColdNet.Core.Domain;
+using ColdNet.Core.Security;
 using Microsoft.Extensions.Logging;
 
 namespace ColdNet.Core.Modules;
@@ -10,9 +11,16 @@ namespace ColdNet.Core.Modules;
 /// </summary>
 public interface IJobImportModule
 {
+    /// <summary>
+    /// <paramref name="secretProtector"/> is for decrypting any <see cref="SensitiveValueAttribute"/>-marked
+    /// fields in <paramref name="moduleInstance"/>'s settings (e.g. a remote server password) - an
+    /// import module has no <c>ModuleExecutionContext</c> to get it from since it runs before any
+    /// job exists, unlike <see cref="IColdModule.ExecuteAsync"/>.
+    /// </summary>
     Task<IReadOnlyList<NewJobRequest>> DiscoverJobsAsync(
         ProcessChain chain,
         ModuleInstance moduleInstance,
         ILogger logger,
+        ISecretProtector secretProtector,
         CancellationToken cancellationToken);
 }
