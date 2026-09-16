@@ -20,6 +20,10 @@ RUN dotnet publish "ColdNet.Admin.csproj" -c Release -o /app/publish /p:UseAppHo
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 EXPOSE 8080
+# "Docker" (not "Production", which appsettings.Production.json owns for the self-contained
+# local-execution release - binds to localhost:5202, meaningless inside a container) so
+# appsettings.Docker.json's Urls/ConnectionStrings are what actually take effect here.
+ENV ASPNETCORE_ENVIRONMENT=Docker
 ENV ASPNETCORE_URLS=http://+:8080
 
 # Admin can also trigger a scheduling pass itself (the "Run now" button), so it needs the same

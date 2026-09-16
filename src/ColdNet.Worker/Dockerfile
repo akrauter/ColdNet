@@ -19,6 +19,11 @@ RUN dotnet publish "ColdNet.Worker.csproj" -c Release -o /app/publish /p:UseAppH
 # Runtime stage (includes LibreOffice for Office-to-PDF, Ghostscript for PDF-to-PDF/A)
 FROM mcr.microsoft.com/dotnet/runtime:10.0 AS final
 WORKDIR /app
+# "Docker" (not "Production", which appsettings.Production.json owns for the self-contained
+# local-execution release - a relative connection string meaningless inside a container) so
+# appsettings.Docker.json's ConnectionStrings is what actually takes effect here. Worker uses the
+# generic Host (no ASP.NET web host), which reads DOTNET_ENVIRONMENT, not ASPNETCORE_ENVIRONMENT.
+ENV DOTNET_ENVIRONMENT=Docker
 
 # libreoffice-nogui: headless office document conversion (OfficeToPdf module)
 # ghostscript + icc-profiles-free: PDF/A conversion (PdfToPdfA module) - point the module's

@@ -55,7 +55,8 @@ Both apply pending EF Core migrations and seed the built-in `default` process gr
 
 ### Or: Docker / Docker Compose (Linux)
 
-You can run both Admin and Worker in Linux containers via Docker Compose:
+You can run both Admin and Worker in Linux containers via Docker Compose - `docker-compose.yml`
+builds both images locally:
 
 ```bash
 docker compose up -d
@@ -63,6 +64,15 @@ docker compose up -d
 Admin UI will be accessible at http://localhost:5202. Both containers include headless LibreOffice
 for Office-to-PDF conversion (`OfficeToPdf`) and Ghostscript + a free sRGB ICC profile for PDF/A
 conversion (`PdfToPdfA` - point its `IccProfilePath` setting at `/usr/share/color/icc/sRGB.icc`).
+
+Pre-built images are also published to Docker Hub on every push to `master` that passes CI -
+[`akrauter/coldnet-admin`](https://hub.docker.com/r/akrauter/coldnet-admin) and
+[`akrauter/coldnet-worker`](https://hub.docker.com/r/akrauter/coldnet-worker), tagged `latest` and
+`master-<short-sha>`. Point `docker-compose.yml`'s `build:` sections at these instead of building
+locally, or run them directly (`docker run -p 5202:8080 -v coldnet-data:/app/data
+akrauter/coldnet-admin`) - both images already have `ASPNETCORE_ENVIRONMENT`/`DOTNET_ENVIRONMENT`
+set to `Docker`, so they listen on `:8080` and store the database under `/app/data` without any
+extra configuration.
 
 ### Or: download a ready-to-run release
 
