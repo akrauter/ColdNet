@@ -14,3 +14,9 @@ internal sealed record EdmVaultProject(Guid Id, string Title);
 internal sealed record EdmVaultFileDetail(Guid Id);
 
 internal sealed record SetMetadataRequest(Dictionary<string, string> Metadata);
+
+/// <summary>One row of <c>GET /api/files?projectId=</c> - only the fields EdmVaultImportModule needs.</summary>
+internal sealed record EdmVaultFileListItem(Guid Id, string Name);
+
+/// <summary>Only the metadata field of <c>GET /api/files/{id}</c> - the rest of FileDetailDto isn't needed here.</summary>
+internal sealed record EdmVaultFileMetadataResponse(Dictionary<string, string>? Metadata);

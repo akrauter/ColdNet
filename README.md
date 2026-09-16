@@ -22,8 +22,9 @@ src/
   ColdNet.Core       Domain model + module SDK (IColdModule, ModuleExecutionContext, PropertyBag, ...) - no external deps
   ColdNet.Data       EF Core (SQLite by default, SQL Server supported) - jobs, chains, groups, module config
   ColdNet.Modules    Built-in modules (Import, TextConversion, Xml, Tools, JobSeparation,
-                     PropertyExtraction, GraphicsConversion, Compression, Case, FileHandling)
-  ColdNet.EdmVault   EDMVault hand-off: file-drop connector + REST connector + the export module
+                     PropertyExtraction, GraphicsConversion, Compression, Case, FileHandling,
+                     RemoteTransfer)
+  ColdNet.EdmVault   EDMVault: file-drop connector, REST connector, export + import modules
   ColdNet.Engine     ModuleRegistry (module discovery) + ChainScheduler (the scheduling loop)
   ColdNet.Worker     Background service host - the "d.cold worker" equivalent
   ColdNet.Admin      Blazor Server admin UI - the "d.cold admin / webadmin" equivalent
@@ -118,6 +119,13 @@ off:
   file(s) (`POST /api/files`, `POST /api/files/{id}/secondary`), and writes the property bag as
   the file's metadata (`PUT /api/files/{id}/metadata`).
 
+This setting only picks the *default* connector for `EdmVaultExport`. The `EdmVaultImport` module
+(the reverse direction - lists an EDMVault project via `GET /api/files?projectId=`, downloads new
+files as jobs, and imports their metadata into each job's property bag) always talks to the REST
+API directly and reads the same `ColdNet:EdmVault:RestApi` section for its base URL/credentials,
+regardless of which connector is configured as the default. Both use the module's DMS support
+"Document type" field as the EDMVault project title.
+
 ```json
 "ColdNet": {
   "EdmVault": {
@@ -137,11 +145,14 @@ variables (`ColdNet__EdmVault__RestApi__Password`) for anything beyond local dev
 
 ## Known deviations from d.cold
 
-- **Module coverage**: this is a framework plus a representative module per category (~20
+- **Module coverage**: this is a framework plus a representative module per category (~23
   modules), not a line-for-line port of all ~90 d.cold modules. Host/mainframe conversion
   (AS/400, SAP) and several niche graphics converters (Ghostscript-based PS/PCL handling,
   ABBYY OCR) are intentionally out of scope - see `docs/MODULES.md` for exactly what's covered
-  and what would need a new module.
+  and what would need a new module. `SftpImport`/`SftpExport` (SFTP, FTPS, or plain FTP - see
+  `ColdNet.Modules/RemoteTransfer`) and `EdmVaultImport` have no d.cold equivalent at all; they
+  exist because ColdNet targets EDMVault instead of d.3 and needed a way to pull work in, not
+  just hand it off.
 - **Finished jobs are kept**, not deleted or moved to a separate table, so the Jobs page stays
   useful for auditing/debugging. Delete them manually (or add a cleanup task) if that matters
   for your volume.
@@ -149,4 +160,4 @@ variables (`ColdNet__EdmVault__RestApi__Password`) for anything beyond local dev
   helper), rather than a bespoke form per module - a reasonable framework-v1 tradeoff given the
   number of modules; a typed settings form per module is a natural next step.
 - **Third-party licenses & cross-platform support**: every `ColdNet.Modules`/`ColdNet.EdmVault` dependency is permissively licensed
-  (`Magick.NET` and `ZXing.Net` are Apache-2.0, `PDFsharp` is MIT) - all are free and approved for commercial use without royalty fees, unlike the Six Labors Split License `SixLabors.ImageSharp` originally used here (dropped for exactly that reason). With `Magick.NET` (replacing the Windows-only `System.Drawing.Common`), image conversion, multi-page TIFF processing, and barcode splitting are fully cross-platform and run natively on Linux and in Docker containers.
+  (`Magick.NET` and `ZXing.Net` are Apache-2.0; `PDFsharp`, `SSH.NET`, and `FluentFTP` are MIT) - all are free and approved for commercial use without royalty fees, unlike the Six Labors Split License `SixLabors.ImageSharp` originally used here (dropped for exactly that reason). Every one of them is pure-managed with no native dependency, so image conversion, multi-page TIFF processing, barcode splitting, and the SFTP/FTPS modules are all fully cross-platform and run natively on Linux and in Docker containers - not just the graphics stack.

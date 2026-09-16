@@ -1,8 +1,6 @@
-using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Microsoft.Extensions.Options;
 
 namespace ColdNet.EdmVault.RestApi;
 
@@ -16,10 +14,8 @@ namespace ColdNet.EdmVault.RestApi;
 public class RestApiEdmVaultHandoverWriter(
     IHttpClientFactory httpClientFactory,
     EdmVaultAuthTokenProvider tokenProvider,
-    IOptions<EdmVaultRestApiOptions> options) : IEdmVaultHandoverWriter
+    EdmVaultProjectResolver projectResolver) : IEdmVaultHandoverWriter
 {
-    private static readonly ConcurrentDictionary<string, (Guid ProjectId, DateTime CachedAtUtc)> ProjectCache = new(StringComparer.OrdinalIgnoreCase);
-
     public async Task WriteAsync(EdmVaultHandoverRequest request, CancellationToken cancellationToken)
     {
         try
@@ -43,7 +39,7 @@ public class RestApiEdmVaultHandoverWriter(
         }
 
         var client = await CreateAuthorizedClientAsync(ct);
-        var projectId = await ResolveProjectIdAsync(client, request.DocumentType, ct);
+        var projectId = await projectResolver.ResolveAsync(client, request.DocumentType, ct);
 
         if (request.SourceFiles.Count == 0)
         {
@@ -75,27 +71,6 @@ public class RestApiEdmVaultHandoverWriter(
         var token = await tokenProvider.GetTokenAsync(ct);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return client;
-    }
-
-    private async Task<Guid> ResolveProjectIdAsync(HttpClient client, string title, CancellationToken ct)
-    {
-        if (ProjectCache.TryGetValue(title, out var cached) &&
-            DateTime.UtcNow - cached.CachedAtUtc < TimeSpan.FromMinutes(options.Value.ProjectLookupCacheMinutes))
-        {
-            return cached.ProjectId;
-        }
-
-        var projects = await client.GetFromJsonAsync<List<EdmVaultProject>>($"api/projects?search={Uri.EscapeDataString(title)}", ct) ?? [];
-        var match = projects.FirstOrDefault(p => string.Equals(p.Title, title, StringComparison.OrdinalIgnoreCase))
-                    ?? projects.FirstOrDefault();
-
-        if (match is null)
-        {
-            throw new InvalidOperationException($"No EDMVault project found matching document type '{title}'.");
-        }
-
-        ProjectCache[title] = (match.Id, DateTime.UtcNow);
-        return match.Id;
     }
 
     private static async Task<Guid> UploadPrimaryAsync(HttpClient client, Guid projectId, string filePath, CancellationToken ct)

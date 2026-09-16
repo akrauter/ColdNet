@@ -4,6 +4,7 @@
 @using ColdNet.Core.ExportImport
 @using Microsoft.AspNetCore.Components.Forms
 @inject IDbContextFactory<ColdNetDbContext> DbFactory
+@inject ModuleRegistry Registry
 @inject NavigationManager Nav
 
 <PageTitle>ColdNet Admin - Process groups</PageTitle>
@@ -143,13 +144,21 @@ else
             {
                 <div class="card-body border-bottom bg-light">
                     <div class="row g-2">
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <input class="form-control" placeholder="Chain name" @bind="_newChainName" />
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <input class="form-control" placeholder="Worker name" @bind="_newChainWorkerName" />
                         </div>
                         <div class="col-md-3">
+                            <select class="form-select" @bind="_newChainImportModuleType" title="Import module (module 0) - where this chain picks up new jobs from">
+                                @foreach (var entry in Registry.ByCategory(ModuleCategory.Import).OrderBy(e => e.DisplayName))
+                                {
+                                    <option value="@entry.TypeName">@entry.DisplayName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
                             <button class="btn btn-success w-100" @onclick="() => CreateChainAsync(group.Id)">Create chain</button>
                         </div>
                     </div>
@@ -209,6 +218,7 @@ else
     private Guid? _newChainGroupId;
     private string _newChainName = string.Empty;
     private string _newChainWorkerName = "default";
+    private string _newChainImportModuleType = "ColdImport";
 
     private bool _showImport;
     private string _importJson = string.Empty;
@@ -482,6 +492,7 @@ else
         _newChainGroupId = _newChainGroupId == groupId ? null : groupId;
         _newChainName = string.Empty;
         _newChainWorkerName = "default";
+        _newChainImportModuleType = "ColdImport";
     }
 
     private async Task CreateChainAsync(Guid groupId)
@@ -500,12 +511,15 @@ else
             WorkerName = string.IsNullOrWhiteSpace(_newChainWorkerName) ? "default" : _newChainWorkerName,
         };
 
+        var importModuleType = string.IsNullOrWhiteSpace(_newChainImportModuleType) ? "ColdImport" : _newChainImportModuleType;
+        var importEntry = Registry.Find(importModuleType);
+
         chain.Modules.Add(new ModuleInstance
         {
             ProcessChainId = chain.Id,
             Order = 0,
-            ModuleTypeName = "ColdImport",
-            DisplayName = "Import",
+            ModuleTypeName = importModuleType,
+            DisplayName = importEntry?.DisplayName ?? "Import",
         });
 
         db.ProcessChains.Add(chain);

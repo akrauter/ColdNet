@@ -13,6 +13,8 @@ always available in the running app at **/modules**.
 | d.cold module | ColdNet module | Status |
 |---|---|---|
 | DCIMPORT | `ColdImport` | ✅ implemented |
+| — (no d.cold equivalent) | `EdmVaultImport` | ✅ implemented - pulls new files from an EDMVault project via the REST API, the reverse of `EdmVaultExport`. See [README § EDMVault connectors](../README.md#edmvault-connectors). |
+| — (no d.cold equivalent) | `SftpImport` | ✅ implemented - pulls new files from a remote SFTP/FTPS/FTP server. See [Remote transfer](#remote-transfer-coldnet-specific---no-direct-dcold-category) below. |
 
 ## Text converters
 
@@ -58,7 +60,7 @@ always available in the running app at **/modules**.
 
 | d.cold module | ColdNet module | Status |
 |---|---|---|
-| DCAS42PCL, DCAS42TXT, DCAS4FETCHER, DCBS22TXT | — | not implemented - extension point (AS/400-specific, needs real target-system access to build/test against) |
+| DCAS42PCL, DCAS42TXT, DCAS4FETCHER, DCBS22TXT | — | not implemented - extension point (AS/400-specific, needs real target-system access to build/test against). For generic remote file pickup/delivery (not AS/400-specific), see `SftpImport`/`SftpExport` under [Remote transfer](#remote-transfer-coldnet-specific---no-direct-dcold-category) below. |
 
 ## ERP
 
@@ -105,3 +107,15 @@ whichever module runs last. ColdNet makes that hand-off an explicit final pipeli
 | ColdNet module | Status |
 |---|---|
 | `EdmVaultExport` | ✅ implemented - file-drop or live REST connector, see [README § EDMVault connectors](../README.md#edmvault-connectors) |
+
+## Remote transfer (ColdNet-specific - no direct d.cold category)
+
+Generic network file transfer, independent of any specific host system (contrast with the
+AS/400-specific `Hosts` category above). SFTP is recommended; FTPS (explicit TLS) and plain FTP
+are supported for legacy servers. Built on SSH.NET and FluentFTP (both MIT, both pure-managed -
+no native dependencies, so these work on Linux/Docker the same as everywhere else):
+
+| ColdNet module | Status |
+|---|---|
+| `SftpImport` | ✅ implemented - lists a remote directory and downloads new files as jobs, the remote counterpart of `ColdImport`. Since a remote server has no equivalent of the local "$"-prefix rename trick, already-downloaded files are renamed (default) or deleted remotely so they aren't re-imported. |
+| `SftpExport` | ✅ implemented - uploads a job's file(s) to a remote directory. |

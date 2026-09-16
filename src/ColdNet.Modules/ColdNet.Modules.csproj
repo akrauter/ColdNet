@@ -5,8 +5,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentFTP" Version="54.2.1" />
     <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.17.1" />
     <PackageReference Include="PDFsharp" Version="6.2.4" />
+    <PackageReference Include="SSH.NET" Version="2026.0.0" />
     <PackageReference Include="ZXing.Net" Version="0.16.11" />
   </ItemGroup>
 

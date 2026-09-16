@@ -8,7 +8,7 @@ namespace ColdNet.EdmVault;
 
 public static class ServiceCollectionExtensions
 {
-    /// <summary>Registers the file-drop EDMVault connector (copy/move + index file, no API required).</summary>
+    /// <summary>Registers the file-drop EDMVault connector (copy/move + index file, no API required) as the default <see cref="IEdmVaultHandoverWriter"/>.</summary>
     public static IServiceCollection AddEdmVaultFileDrop(this IServiceCollection services)
     {
         services.AddSingleton<IEdmVaultHandoverWriter, FileDropEdmVaultHandoverWriter>();
@@ -16,10 +16,13 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Registers the REST connector talking to a live EdmVault.Api instance (see
-    /// D:\_Dev\Azubiprojekte\EdmVault). Bind credentials/base URL under "ColdNet:EdmVault:RestApi".
+    /// Registers the REST plumbing (named HttpClient, auth token provider, project-by-title
+    /// resolver) talking to a live EdmVault.Api instance (see D:\_Dev\Azubiprojekte\EdmVault).
+    /// Bind credentials/base URL under "ColdNet:EdmVault:RestApi". Safe to call unconditionally -
+    /// REST-specific modules (<see cref="EdmVaultImportModule"/>, and <c>SftpImport</c>'s cousin
+    /// for the export direction) need this regardless of which connector is the *default* writer.
     /// </summary>
-    public static IServiceCollection AddEdmVaultRestApi(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddEdmVaultRestApiClient(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<EdmVaultRestApiOptions>(configuration.GetSection("ColdNet:EdmVault:RestApi"));
 
@@ -33,20 +36,31 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddSingleton<EdmVaultAuthTokenProvider>();
+        services.AddSingleton<EdmVaultProjectResolver>();
+        return services;
+    }
+
+    /// <summary>Registers the REST connector as the default <see cref="IEdmVaultHandoverWriter"/> (on top of the plumbing from <see cref="AddEdmVaultRestApiClient"/>).</summary>
+    public static IServiceCollection AddEdmVaultRestApi(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddEdmVaultRestApiClient(configuration);
         services.AddSingleton<IEdmVaultHandoverWriter, RestApiEdmVaultHandoverWriter>();
         return services;
     }
 
     /// <summary>
-    /// Registers whichever EDMVault connector "ColdNet:EdmVault:Connector" selects
-    /// ("FileDrop" [default] | "RestApi").
+    /// Registers the REST plumbing (always - needed by <see cref="EdmVaultImportModule"/>
+    /// regardless of the chosen default) plus whichever connector "ColdNet:EdmVault:Connector"
+    /// selects as the *default* export writer ("FileDrop" [default] | "RestApi").
     /// </summary>
     public static IServiceCollection AddEdmVault(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddEdmVaultRestApiClient(configuration);
+
         var connector = configuration["ColdNet:EdmVault:Connector"] ?? "FileDrop";
 
         return string.Equals(connector, "RestApi", StringComparison.OrdinalIgnoreCase)
-            ? services.AddEdmVaultRestApi(configuration)
+            ? services.AddSingleton<IEdmVaultHandoverWriter, RestApiEdmVaultHandoverWriter>()
             : services.AddEdmVaultFileDrop();
     }
 }

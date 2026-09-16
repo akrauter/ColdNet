@@ -21,4 +21,10 @@ public enum ModuleCategory
     Case,
     FileHandling,
     DmsExport,
+
+    /// <summary>
+    /// ColdNet-specific category (no direct d.cold equivalent) for modules that move files to/from
+    /// a remote server over a network file transfer protocol - e.g. SFTP/FTPS/FTP.
+    /// </summary>
+    RemoteTransfer,
 }
