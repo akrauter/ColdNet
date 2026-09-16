@@ -33,6 +33,7 @@ tests/
   ColdNet.Engine.Tests
 docs/
   MODULES.md         Full d.cold-module -> ColdNet-module mapping table
+  PLACEHOLDERS.md    {prefix}/{input}/{Now:...} etc. reference + worked examples (also at /help)
 deploy/local-release/ Files bundled into the release zip (Start-*.bat, README.txt)
 .github/workflows/   CI (build+test) and CD (local-execution release from master)
 data/                Shared SQLite database file (dev default)
@@ -97,6 +98,13 @@ name for a given chain, matching d.cold's "a chain can only be loaded by one wor
 On failure, a job is parked in `Error` at the module that failed (its `CurrentModuleOrder` does
 not advance) - fix the cause and reset it to `Ready` from the Jobs page, and processing resumes
 exactly where it left off, exactly like d.cold.
+
+## Placeholders in module settings
+
+Some settings fields (`SourceFileMask`, `ShellExecute`'s `Arguments`, `SetVariable`'s `Value`)
+accept `{Name}` placeholders - e.g. `{prefix}` for the job's file prefix, or `{Now:yyyy-MM-dd}` for
+today's date. Full reference and worked examples: `docs/PLACEHOLDERS.md`, or in the running app at
+**/help**.
 
 ## Adding a module
 

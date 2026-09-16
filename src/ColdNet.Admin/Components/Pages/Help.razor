@@ -1,0 +1,124 @@
+@page "/help"
+@rendermode InteractiveServer
+
+<PageTitle>ColdNet Admin - Help</PageTitle>
+
+<h1>Help</h1>
+<p class="text-muted">
+    Placeholder variables you can use in module settings, and a few worked examples. For the
+    bigger picture (concepts, module catalogue, EDMVault connectors) see the
+    <a href="https://github.com/akrauter/ColdNet#readme" target="_blank">project README</a>.
+</p>
+
+<h2 class="mt-4">Placeholder variables</h2>
+<p>
+    A handful of text settings fields accept placeholders - plain <code>{Name}</code> tokens that
+    get substituted before the module runs. Which placeholders a field accepts depends on the
+    module; they're never mixed (a <code>SourceFileMask</code> field only understands
+    <code>{prefix}</code>, for example).
+</p>
+
+<h4 class="mt-4">File mask placeholders</h4>
+<p class="text-muted">Used in every module's <code>SourceFileMask</code> setting (<code>EdmVaultExport</code>, <code>SftpExport</code>, <code>MultiPageTiff</code>, <code>PdfConcat</code>).</p>
+<table class="table table-sm">
+    <thead><tr><th style="width:160px">Placeholder</th><th>Resolves to</th></tr></thead>
+    <tbody>
+        <tr><td><code>{prefix}</code></td><td>The job's file prefix (its job number), e.g. <code>BEAXH1TS60QW</code>.</td></tr>
+    </tbody>
+</table>
+<p class="text-muted small">
+    <code>SourceFileMask</code> is a filesystem glob (<code>*</code>/<code>?</code>), not a regex -
+    it's matched against file names in the module's input directory. <code>EdmVaultExport</code>
+    and <code>SftpExport</code> default to <code>{prefix}.*</code> (every file belonging to the
+    job); <code>MultiPageTiff</code> and <code>PdfConcat</code> default to
+    <code>{prefix}_*.tif</code> / <code>{prefix}_*.pdf</code> (numbered single-page files produced
+    by an earlier step - see the worked example below).
+</p>
+
+<h4 class="mt-4">Shell Execute argument placeholders</h4>
+<p class="text-muted">Used in <code>ShellExecute</code>'s <code>Arguments</code> setting.</p>
+<table class="table table-sm">
+    <thead><tr><th style="width:160px">Placeholder</th><th>Resolves to</th></tr></thead>
+    <tbody>
+        <tr><td><code>{input}</code></td><td>Full path to the module's resolved input file (input directory + job prefix + file extension).</td></tr>
+        <tr><td><code>{output}</code></td><td>Full path to the module's resolved output file (output directory + job prefix + output file extension).</td></tr>
+        <tr><td><code>{prefix}</code></td><td>The job's file prefix.</td></tr>
+        <tr><td><code>{inputDir}</code></td><td>The module's input directory.</td></tr>
+        <tr><td><code>{outputDir}</code></td><td>The module's output directory.</td></tr>
+    </tbody>
+</table>
+
+<h4 class="mt-4">Set Variable value placeholders</h4>
+<p class="text-muted">Used in <code>SetVariable</code>'s per-assignment <code>Value</code> setting.</p>
+<table class="table table-sm">
+    <thead><tr><th style="width:160px">Placeholder</th><th>Resolves to</th></tr></thead>
+    <tbody>
+        <tr><td><code>{JobPrefix}</code></td><td>The job's file prefix.</td></tr>
+        <tr><td><code>{DocumentType}</code></td><td>The module's DMS support "Document type" field (empty string if not set).</td></tr>
+        <tr>
+            <td><code>{Now}</code> / <code>{Now:format}</code></td>
+            <td>
+                Current local date/time. <code>format</code> is a
+                <a href="https://learn.microsoft.com/dotnet/standard/base-types/custom-date-and-time-format-strings" target="_blank">.NET custom date/time format string</a>;
+                <code>{Now}</code> alone is short for <code>{Now:yyyy-MM-dd}</code>.
+                E.g. <code>{Now:yyyy-MM-dd HH:mm}</code> &rarr; <code>@DateTime.Now.ToString("yyyy-MM-dd HH:mm")</code>.
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<h2 class="mt-5">Worked examples</h2>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Hand a finished job's files over to EDMVault or SFTP</h5>
+        <p class="card-text">
+            <code>EdmVaultExport</code> and <code>SftpExport</code> both default
+            <code>SourceFileMask</code> to <code>{prefix}.*</code> - every file sharing the job's
+            prefix, regardless of extension. Leave it as-is to hand over everything the chain
+            produced; narrow it (e.g. <code>{prefix}.pdf</code>) to hand over only one file type
+            and leave the rest for a later step.
+        </p>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Reassemble scanned pages into one multi-page TIFF</h5>
+        <p class="card-text">
+            <code>MultiPageTiff</code> expects several single-page files already named
+            <code>&lt;prefix&gt;_&lt;n&gt;.tif</code> by an earlier step (a scanner, or a module
+            like <code>BarcodeSplit</code>) - e.g. <code>BEAXH1TS60QW_001.tif</code>,
+            <code>BEAXH1TS60QW_002.tif</code>, ... With the default mask
+            <code>{prefix}_*.tif</code>, adding the module to a chain after such a step combines
+            all of them (sorted by file name, so keep the numbering zero-padded) into a single
+            <code>BEAXH1TS60QW.tif</code>.
+        </p>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Call an external converter (e.g. Ghostscript)</h5>
+        <p class="card-text">
+            <code>ShellExecute</code> with <strong>Executable</strong> <code>gs</code> and
+            <strong>Arguments</strong>
+            <code>-q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -o {output} {input}</code> converts
+            whatever the module's configured input/output directories and extensions resolve to
+            (e.g. PostScript in, PDF out) without ColdNet needing a dedicated module for that
+            specific tool.
+        </p>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Tag a job with computed metadata</h5>
+        <p class="card-text">
+            <code>SetVariable</code> with assignments <code>importDate</code> =
+            <code>{Now:yyyy-MM-dd}</code> and <code>sourceJob</code> = <code>{JobPrefix}</code>
+            writes both into the job's property bag - picked up automatically by a later
+            <code>EdmVaultExport</code>/<code>PropertiesToXml</code> step as index fields.
+        </p>
+    </div>
+</div>
