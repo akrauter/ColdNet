@@ -9,7 +9,8 @@ public class ShellExecuteSettings
 
     /// <summary>
     /// Arguments with placeholders {input}, {output}, {prefix}, {inputDir}, {outputDir},
-    /// {fileName}, {extension} substituted before the process is started.
+    /// {fileName}, {fileNameWithoutExtension}, {extension} substituted before the process is
+    /// started.
     /// </summary>
     public string Arguments { get; set; } = string.Empty;
 
@@ -84,6 +85,7 @@ public class ShellExecuteModule : IColdModule
             .Replace("{inputDir}", context.InputDirectory)
             .Replace("{outputDir}", context.OutputDirectory)
             .Replace("{fileName}", Path.GetFileName(inputPath))
+            .Replace("{fileNameWithoutExtension}", Path.GetFileNameWithoutExtension(inputPath))
             .Replace("{extension}", Path.GetExtension(inputPath).TrimStart('.'));
 
     private static void TryKill(Process process)

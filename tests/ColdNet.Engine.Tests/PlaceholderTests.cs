@@ -27,9 +27,10 @@ public class PlaceholderTests
         var inputPath = context.GetInputPath();
         var outputPath = context.GetOutputPath();
 
-        var result = ShellExecuteModule.ResolveArguments("--in {fileName} --ext {extension}", context, inputPath, outputPath);
+        var result = ShellExecuteModule.ResolveArguments(
+            "--in {fileName} --stem {fileNameWithoutExtension} --ext {extension}", context, inputPath, outputPath);
 
-        Assert.Equal("--in BEAXH1TS60QW.pdf --ext pdf", result);
+        Assert.Equal("--in BEAXH1TS60QW.pdf --stem BEAXH1TS60QW --ext pdf", result);
     }
 
     [Fact]
@@ -37,8 +38,8 @@ public class PlaceholderTests
     {
         var context = CreateContext();
 
-        var result = SetVariableModule.ResolvePlaceholders("{FileName} / {Extension}", context);
+        var result = SetVariableModule.ResolvePlaceholders("{FileName} / {FileNameWithoutExtension} / {Extension}", context);
 
-        Assert.Equal("BEAXH1TS60QW.pdf / pdf", result);
+        Assert.Equal("BEAXH1TS60QW.pdf / BEAXH1TS60QW / pdf", result);
     }
 }

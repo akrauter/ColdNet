@@ -34,6 +34,7 @@ Used in `ShellExecute`'s `Arguments` setting.
 | `{inputDir}` | The module's input directory. |
 | `{outputDir}` | The module's output directory. |
 | `{fileName}` | File name (with extension) of the module's resolved input file, e.g. `BEAXH1TS60QW.pdf`. |
+| `{fileNameWithoutExtension}` | File name without extension of the module's resolved input file, e.g. `BEAXH1TS60QW`. |
 | `{extension}` | Extension (without dot) of the module's resolved input file, e.g. `pdf`. |
 
 ## Set Variable value placeholders
@@ -45,6 +46,7 @@ Used in `SetVariable`'s per-assignment `Value` setting.
 | `{JobPrefix}` | The job's file prefix. |
 | `{DocumentType}` | The module's DMS support "Document type" field (empty string if not set). |
 | `{FileName}` | File name (with extension) of the module's resolved input file, e.g. `BEAXH1TS60QW.pdf`. |
+| `{FileNameWithoutExtension}` | File name without extension of the module's resolved input file, e.g. `BEAXH1TS60QW`. |
 | `{Extension}` | Extension (without dot) of the module's resolved input file, e.g. `pdf`. |
 | `{Now}` / `{Now:format}` | Current local date/time. `format` is a [.NET custom date/time format string](https://learn.microsoft.com/dotnet/standard/base-types/custom-date-and-time-format-strings); `{Now}` alone is short for `{Now:yyyy-MM-dd}`. |
 
