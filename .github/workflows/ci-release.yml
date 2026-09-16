@@ -15,9 +15,10 @@ env:
 jobs:
   build-and-test:
     name: Build & test
-    # windows-latest: the graphics/barcode modules are built on System.Drawing.Common (GDI+),
-    # which only runs on Windows - their tests need a Windows runner to actually execute.
-    runs-on: windows-latest
+    # ubuntu-latest: the graphics/barcode modules are built on Magick.NET (cross-platform), so
+    # running the full test suite here doubles as the actual proof that ColdNet runs on Linux -
+    # not just an assumption from NuGet package metadata.
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
