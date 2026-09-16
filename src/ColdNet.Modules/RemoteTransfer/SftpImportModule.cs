@@ -61,7 +61,7 @@ public class SftpImportSettings
 /// <summary>
 /// The remote counterpart of <c>ColdImport</c>: connects to an SFTP/FTPS/FTP server, lists
 /// <see cref="SftpImportSettings.RemoteDirectory"/>, and downloads every new matching file into
-/// <see cref="CommonModuleSettings.Directory"/> as its own job - exactly like DCIMPORT, except the
+/// <see cref="CommonModuleSettings.Directory"/> as its own job - exactly like CNIMPORT, except the
 /// source directory lives on a remote server instead of local disk. Because remote servers have no
 /// equivalent of the local "$"-prefix rename trick, re-processing is prevented two ways: the
 /// configured <see cref="RemoteImportPostAction"/> (rename/delete the remote file), and - since
@@ -70,7 +70,7 @@ public class SftpImportSettings
 /// (<c>.sftp-import-state.json</c> next to the downloaded jobs) that's always consulted regardless
 /// of whether the remote-side action succeeded.
 /// </summary>
-[ModuleDefinition("SftpImport", ModuleCategory.Import, "SFTP/FTPS Import", "Pulls new files from a remote SFTP/FTPS/FTP server and creates a job for each.", SettingsType = typeof(SftpImportSettings))]
+[ModuleDefinition("SftpImport", ModuleCategory.Import, "SFTP/FTPS Import", "Pulls new files from a remote SFTP/FTPS/FTP server and creates a job for each.", SettingsType = typeof(SftpImportSettings), UsesFileExtension = false, UsesOutputFileExtension = false)]
 public class SftpImportModule : IJobImportModule
 {
     private const string StateFileName = ".sftp-import-state.json";

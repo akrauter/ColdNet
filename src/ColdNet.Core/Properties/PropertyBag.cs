@@ -3,10 +3,10 @@ using System.Text.Json;
 namespace ColdNet.Core.Properties;
 
 /// <summary>
-/// A job's property/variable set - the ColdNet equivalent of d.cold's JPL property files written
-/// and consumed by modules such as DCSETVAR, DCPARSE or DCVARFRTXT. Supports multi-valued fields
-/// (JPL's <c>feld[]=</c> repeated-key notation) and is persisted as plain JSON next to the job's
-/// files, using the module's configured output file extension as the file name.
+/// A job's property/variable set, written and consumed by modules such as CNSETVAR, CNPARSE or
+/// CNVARFRTXT. Supports multi-valued fields (JPL-style <c>feld[]=</c> repeated-key notation) and
+/// is persisted as plain JSON next to the job's files, using the module's configured output file
+/// extension as the file name.
 /// </summary>
 public class PropertyBag
 {

@@ -96,7 +96,7 @@ else
                                 <span class="text-muted ms-2">@module.ModuleTypeName</span>
                                 @if (entry?.OriginalModule is not null)
                                 {
-                                    <span class="badge bg-light text-dark border ms-2">d.cold: @entry.OriginalModule</span>
+                                    <span class="badge bg-light text-dark border ms-2">ColdNet: @entry.OriginalModule</span>
                                 }
                                 @if (!module.Enabled)
                                 {
@@ -140,8 +140,14 @@ else
                                 <div class="row g-2">
                                     <div class="col-md-6"><label class="form-label">Directory</label><input class="form-control" @bind="_editDirectory" /></div>
                                     <div class="col-md-6"><label class="form-label">Output directory</label><input class="form-control" @bind="_editOutputDirectory" /></div>
-                                    <div class="col-md-3"><label class="form-label">File extension</label><input class="form-control" @bind="_editFileExtension" /></div>
-                                    <div class="col-md-3"><label class="form-label">Output file extension</label><input class="form-control" @bind="_editOutputFileExtension" /></div>
+                                    @if (entry?.UsesFileExtension ?? true)
+                                    {
+                                        <div class="col-md-3"><label class="form-label">File extension</label><input class="form-control" @bind="_editFileExtension" /></div>
+                                    }
+                                    @if (entry?.UsesOutputFileExtension ?? true)
+                                    {
+                                        <div class="col-md-3"><label class="form-label">Output file extension</label><input class="form-control" @bind="_editOutputFileExtension" /></div>
+                                    }
                                     <div class="col-md-6 d-flex align-items-end gap-3">
                                         <div class="form-check"><input class="form-check-input" type="checkbox" id="editSave" @bind="_editSave" /><label class="form-check-label" for="editSave">Save</label></div>
                                         <div class="form-check"><input class="form-check-input" type="checkbox" id="editDelete" @bind="_editDeleteSourceFile" /><label class="form-check-label" for="editDelete">Delete source</label></div>

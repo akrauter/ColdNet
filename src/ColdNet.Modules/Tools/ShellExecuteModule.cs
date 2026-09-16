@@ -21,10 +21,10 @@ public class ShellExecuteSettings
 
 /// <summary>
 /// Runs an external command line tool against the job's file - the ColdNet equivalent of
-/// DCSHELLEXEC, used to bolt on any converter that has no dedicated module (Ghostscript,
+/// CNSHELLEXEC, used to bolt on any converter that has no dedicated module (Ghostscript,
 /// LibreOffice, a customer script, ...).
 /// </summary>
-[ModuleDefinition("ShellExecute", ModuleCategory.Tools, "Shell Execute", "Runs an external command line tool against the job's file.", OriginalModule = "DCSHELLEXEC", SettingsType = typeof(ShellExecuteSettings))]
+[ModuleDefinition("ShellExecute", ModuleCategory.Tools, "Shell Execute", "Runs an external command line tool against the job's file.", OriginalModule = "CNSHELLEXEC", SettingsType = typeof(ShellExecuteSettings))]
 public class ShellExecuteModule : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

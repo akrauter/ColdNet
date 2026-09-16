@@ -30,7 +30,9 @@ public sealed class ModuleRegistry
                 x.Attribute.OriginalModule,
                 x.Type,
                 typeof(IJobImportModule).IsAssignableFrom(x.Type),
-                x.Attribute.SettingsType))
+                x.Attribute.SettingsType,
+                x.Attribute.UsesFileExtension,
+                x.Attribute.UsesOutputFileExtension))
             .ToDictionary(e => e.TypeName, StringComparer.OrdinalIgnoreCase);
     }
 

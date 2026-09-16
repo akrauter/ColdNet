@@ -5,7 +5,7 @@ namespace ColdNet.Modules.GraphicsConversion;
 
 public class OfficeToPdfSettings
 {
-    /// <summary>Path to the LibreOffice binary (soffice.exe / soffice). d.cold's DCOFFICE2PDF used MS Office instead; LibreOffice's headless mode needs no license and no UI automation.</summary>
+    /// <summary>Path to the LibreOffice binary (soffice.exe / soffice) - chosen over MS Office automation since LibreOffice's headless mode needs no license and no UI automation.</summary>
     public string LibreOfficePath { get; set; } = "soffice";
 
     public int TimeoutSeconds { get; set; } = 120;
@@ -13,10 +13,10 @@ public class OfficeToPdfSettings
 
 /// <summary>
 /// Converts an Office document (docx/xlsx/pptx/odt/...) to PDF via LibreOffice headless mode -
-/// the ColdNet equivalent of DCOFFICE2PDF. Requires LibreOffice to be installed on the worker
+/// the ColdNet equivalent of CNOFFICE2PDF. Requires LibreOffice to be installed on the worker
 /// host; see docs/MODULES.md for the external tool it depends on.
 /// </summary>
-[ModuleDefinition("OfficeToPdf", ModuleCategory.GraphicsConversion, "Office to PDF", "Converts an Office document to PDF via LibreOffice headless mode.", OriginalModule = "DCOFFICE2PDF", SettingsType = typeof(OfficeToPdfSettings))]
+[ModuleDefinition("OfficeToPdf", ModuleCategory.GraphicsConversion, "Office to PDF", "Converts an Office document to PDF via LibreOffice headless mode.", OriginalModule = "CNOFFICE2PDF", SettingsType = typeof(OfficeToPdfSettings), UsesOutputFileExtension = false)]
 public class OfficeToPdfModule : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

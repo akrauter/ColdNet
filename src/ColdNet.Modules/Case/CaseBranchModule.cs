@@ -32,10 +32,10 @@ public class CaseBranchSettings
 
 /// <summary>
 /// Conditionally redirects a job to a different module within the same chain based on its
-/// property bag - the ColdNet equivalent of DCCASE. If no rule matches, the job simply continues
+/// property bag - the ColdNet equivalent of CNCASE. If no rule matches, the job simply continues
 /// to the next module as usual.
 /// </summary>
-[ModuleDefinition("CaseBranch", ModuleCategory.Case, "Case", "Redirects a job to a different module based on conditions over its properties.", OriginalModule = "DCCASE", SettingsType = typeof(CaseBranchSettings))]
+[ModuleDefinition("CaseBranch", ModuleCategory.Case, "Case", "Redirects a job to a different module based on conditions over its properties.", OriginalModule = "CNCASE", SettingsType = typeof(CaseBranchSettings), UsesFileExtension = false, UsesOutputFileExtension = false)]
 public class CaseBranchModule : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

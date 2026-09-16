@@ -16,10 +16,10 @@ public class PropertiesToXmlSettings
 }
 
 /// <summary>
-/// Serializes the job's property bag to an XML index file - the ColdNet equivalent of DCCONVXML
+/// Serializes the job's property bag to an XML index file - the ColdNet equivalent of CNCONVXML
 /// used to hand structured index data to downstream systems.
 /// </summary>
-[ModuleDefinition("PropertiesToXml", ModuleCategory.Xml, "Properties to XML", "Writes the job's property bag out as an XML index file.", OriginalModule = "DCCONVXML", SettingsType = typeof(PropertiesToXmlSettings))]
+[ModuleDefinition("PropertiesToXml", ModuleCategory.Xml, "Properties to XML", "Writes the job's property bag out as an XML index file.", OriginalModule = "CNCONVXML", SettingsType = typeof(PropertiesToXmlSettings), UsesFileExtension = false)]
 public class PropertiesToXmlModule : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

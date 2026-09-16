@@ -1,9 +1,8 @@
 namespace ColdNet.Core.Domain;
 
 /// <summary>
-/// One configured step ("module instance") inside a <see cref="ProcessChain"/>. In d.cold every
-/// module instance added to a chain gets its own configuration file on disk; here it is one row
-/// with a JSON settings blob, which is functionally the same idea (isolated, per-instance config).
+/// One configured step ("module instance") inside a <see cref="ProcessChain"/>, each with its own
+/// isolated, per-instance configuration stored as a JSON settings blob.
 /// </summary>
 public class ModuleInstance
 {
@@ -16,7 +15,7 @@ public class ModuleInstance
 
     /// <summary>
     /// The registered <c>IColdModule.ModuleTypeName</c> this instance runs, e.g. "ColdImport",
-    /// "TextReplace", "BarcodeSplit" - the ColdNet analogues of DCIMPORT, DCREPLACE, DCBARCODE.
+    /// "TextReplace", "BarcodeSplit" - the ColdNet analogues of CNIMPORT, CNREPLACE, CNBARCODE.
     /// </summary>
     public string ModuleTypeName { get; set; } = string.Empty;
 

@@ -7,14 +7,14 @@ public class GenerateIdSettings
 {
     public string PropertyName { get; set; } = "id";
 
-    /// <summary>"Guid" | "UniqueJobId" (12-char alphanumeric, same generator as DCIMPORT) | "Timestamp".</summary>
+    /// <summary>"Guid" | "UniqueJobId" (12-char alphanumeric, same generator as CNIMPORT) | "Timestamp".</summary>
     public string Format { get; set; } = "UniqueJobId";
 }
 
 /// <summary>
-/// Generates a unique identifier into the job's property bag - the ColdNet equivalent of DCGETID.
+/// Generates a unique identifier into the job's property bag - the ColdNet equivalent of CNGETID.
 /// </summary>
-[ModuleDefinition("GenerateId", ModuleCategory.PropertyExtraction, "Generate ID", "Generates a unique identifier into the job's property bag.", OriginalModule = "DCGETID", SettingsType = typeof(GenerateIdSettings))]
+[ModuleDefinition("GenerateId", ModuleCategory.PropertyExtraction, "Generate ID", "Generates a unique identifier into the job's property bag.", OriginalModule = "CNGETID", SettingsType = typeof(GenerateIdSettings), UsesFileExtension = false, UsesOutputFileExtension = false)]
 public class GenerateIdModule : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

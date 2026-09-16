@@ -27,9 +27,9 @@ public class ParsePropertiesSettings
 
 /// <summary>
 /// Extracts values out of a text file into the job's property bag using regular expressions -
-/// the ColdNet equivalent of DCPARSE / DCVARFRTXT / DCEXTRACTLINE combined into one flexible module.
+/// the ColdNet equivalent of CNPARSE / CNVARFRTXT / CNEXTRACTLINE combined into one flexible module.
 /// </summary>
-[ModuleDefinition("ParseProperties", ModuleCategory.PropertyExtraction, "Parse Properties", "Extracts values from a text file into the job's property bag via regex rules.", OriginalModule = "DCPARSE", SettingsType = typeof(ParsePropertiesSettings))]
+[ModuleDefinition("ParseProperties", ModuleCategory.PropertyExtraction, "Parse Properties", "Extracts values from a text file into the job's property bag via regex rules.", OriginalModule = "CNPARSE", SettingsType = typeof(ParsePropertiesSettings), UsesOutputFileExtension = false)]
 public class ParsePropertiesModule : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

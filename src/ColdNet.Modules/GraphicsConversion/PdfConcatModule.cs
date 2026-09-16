@@ -12,9 +12,9 @@ public class PdfConcatSettings
 
 /// <summary>
 /// Concatenates several PDFs sharing the job's prefix into one output PDF - the ColdNet
-/// equivalent of DCPDFCONCAT / DCAPPENDPDF.
+/// equivalent of CNPDFCONCAT / CNAPPENDPDF.
 /// </summary>
-[ModuleDefinition("PdfConcat", ModuleCategory.GraphicsConversion, "PDF Concat", "Merges several PDFs sharing the job's prefix into one PDF.", OriginalModule = "DCPDFCONCAT", SettingsType = typeof(PdfConcatSettings))]
+[ModuleDefinition("PdfConcat", ModuleCategory.GraphicsConversion, "PDF Concat", "Merges several PDFs sharing the job's prefix into one PDF.", OriginalModule = "CNPDFCONCAT", SettingsType = typeof(PdfConcatSettings), UsesFileExtension = false)]
 public class PdfConcatModule : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

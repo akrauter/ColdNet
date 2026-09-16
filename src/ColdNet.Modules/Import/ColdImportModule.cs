@@ -7,7 +7,7 @@ namespace ColdNet.Modules.Import;
 
 public class ColdImportSettings
 {
-    /// <summary>File mask, e.g. "*.pdf" - not just an extension, mirrors DCIMPORT's "File mask" field.</summary>
+    /// <summary>File mask, e.g. "*.pdf" - not just an extension, mirrors CNIMPORT's "File mask" field.</summary>
     public string FileMask { get; set; } = "*.*";
 
     /// <summary>Generates a unique 12-character job number instead of using the source file name.</summary>
@@ -21,13 +21,13 @@ public class ColdImportSettings
 }
 
 /// <summary>
-/// The mandatory first module of every chain - the ColdNet equivalent of DCIMPORT. Scans
+/// The mandatory first module of every chain - the ColdNet equivalent of CNIMPORT. Scans
 /// <see cref="CommonModuleSettings.Directory"/> for files matching <see cref="ColdImportSettings.FileMask"/>,
 /// groups every file sharing a name prefix into one job, renames them to the job number with a
-/// leading "$" on the extension (exactly like d.cold: Test.pdf -&gt; 00106EL123317.$pdf) so the
-/// same delivery is never imported twice, and reports the new jobs to the engine.
+/// leading "$" on the extension (e.g. Test.pdf -&gt; 00106EL123317.$pdf) so the same delivery is
+/// never imported twice, and reports the new jobs to the engine.
 /// </summary>
-[ModuleDefinition("ColdImport", ModuleCategory.Import, "Import", "Watches a directory and creates a job for every incoming file (group).", OriginalModule = "DCIMPORT", SettingsType = typeof(ColdImportSettings))]
+[ModuleDefinition("ColdImport", ModuleCategory.Import, "Import", "Watches a directory and creates a job for every incoming file (group).", OriginalModule = "CNIMPORT", SettingsType = typeof(ColdImportSettings), UsesFileExtension = false, UsesOutputFileExtension = false)]
 public class ColdImportModule : IJobImportModule
 {
     public Task<IReadOnlyList<NewJobRequest>> DiscoverJobsAsync(

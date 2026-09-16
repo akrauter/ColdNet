@@ -32,7 +32,7 @@ public class EdmVaultImportSettings
 /// to mark a remote item as already handled, so already-imported file ids are tracked in a small
 /// local state file (<c>.edmvault-import-state.json</c>) next to the downloaded jobs.
 /// </summary>
-[ModuleDefinition("EdmVaultImport", ModuleCategory.Import, "EDMVault Import", "Pulls new files from an EDMVault project via the REST API and creates a job for each.", SettingsType = typeof(EdmVaultImportSettings))]
+[ModuleDefinition("EdmVaultImport", ModuleCategory.Import, "EDMVault Import", "Pulls new files from an EDMVault project via the REST API and creates a job for each.", SettingsType = typeof(EdmVaultImportSettings), UsesFileExtension = false, UsesOutputFileExtension = false)]
 public class EdmVaultImportModule(
     IHttpClientFactory httpClientFactory,
     EdmVaultAuthTokenProvider tokenProvider,

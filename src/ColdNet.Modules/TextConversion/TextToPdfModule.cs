@@ -16,10 +16,10 @@ public class TextToPdfSettings
 
 /// <summary>
 /// Renders a plain-text file to a simple PDF (monospace, one page per <see cref="TextToPdfSettings.LinesPerPage"/>
-/// lines) - the ColdNet equivalent of DCTXT2PDF, typically used to make print-list style text
+/// lines) - the ColdNet equivalent of CNTXT2PDF, typically used to make print-list style text
 /// deliveries long-term archivable.
 /// </summary>
-[ModuleDefinition("TextToPdf", ModuleCategory.TextConversion, "Text to PDF", "Renders a text file to a simple monospace PDF.", OriginalModule = "DCTXT2PDF", SettingsType = typeof(TextToPdfSettings))]
+[ModuleDefinition("TextToPdf", ModuleCategory.TextConversion, "Text to PDF", "Renders a text file to a simple monospace PDF.", OriginalModule = "CNTXT2PDF", SettingsType = typeof(TextToPdfSettings))]
 public class TextToPdfModule : IColdModule
 {
     static TextToPdfModule()

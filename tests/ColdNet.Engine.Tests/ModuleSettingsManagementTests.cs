@@ -31,6 +31,46 @@ public class ModuleSettingsManagementTests : IDisposable
         Assert.Equal(typeof(TextToPdfSettings), textPdfEntry.SettingsType);
     }
 
+    [Theory]
+    // Uses neither - no single input/output file at all (import modules), or driven entirely by
+    // its own extension-like settings (RenameFiles' FromExtension/ToExtension) or a glob/property
+    // bag with no file extension concept (ColdImport's FileMask, FileMover/DeleteFiles' "*",
+    // CaseBranch/GenerateId's property-bag-only work).
+    [InlineData("ColdImport", false, false)]
+    [InlineData("RenameFiles", false, false)]
+    [InlineData("FileMover", false, false)]
+    [InlineData("DeleteFiles", false, false)]
+    [InlineData("CaseBranch", false, false)]
+    [InlineData("GenerateId", false, false)]
+    [InlineData("NoOp", false, false)]
+    // Uses both - reads/writes exactly one input/output file via GetInputPath()/GetOutputPath().
+    [InlineData("TextToPdf", true, true)]
+    [InlineData("TextReplace", true, true)]
+    [InlineData("EncodeText", true, true)]
+    [InlineData("ConvertGraphic", true, true)]
+    [InlineData("ShellExecute", true, true)]
+    [InlineData("BarcodeSplit", true, true)]
+    // Reads Common.FileExtension but always writes a fixed/self-determined output extension.
+    [InlineData("OfficeToPdf", true, false)]
+    [InlineData("UnpackArchive", true, false)]
+    [InlineData("ParseProperties", true, false)]
+    [InlineData("SetVariable", true, false)]
+    // Selects input files via SourceFileMask (or has none) but writes one fixed-extension output.
+    [InlineData("MultiPageTiff", false, true)]
+    [InlineData("PdfConcat", false, true)]
+    [InlineData("PropertiesToXml", false, true)]
+    public void ModuleRegistry_discovers_whether_each_module_reads_the_common_file_extension_fields(
+        string moduleTypeName, bool expectedUsesFileExtension, bool expectedUsesOutputFileExtension)
+    {
+        var registry = new ModuleRegistry([typeof(OfficeToPdfModule).Assembly]);
+
+        var entry = registry.Find(moduleTypeName);
+
+        Assert.NotNull(entry);
+        Assert.Equal(expectedUsesFileExtension, entry.UsesFileExtension);
+        Assert.Equal(expectedUsesOutputFileExtension, entry.UsesOutputFileExtension);
+    }
+
     [Fact]
     public async Task Saving_and_loading_updated_module_settings_json_persists_in_database()
     {

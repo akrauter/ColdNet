@@ -11,4 +11,6 @@ public sealed record ModuleCatalogEntry(
     string? OriginalModule,
     Type ClrType,
     bool IsImportModule,
-    Type? SettingsType);
+    Type? SettingsType,
+    bool UsesFileExtension,
+    bool UsesOutputFileExtension);

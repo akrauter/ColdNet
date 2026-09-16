@@ -11,10 +11,10 @@ public class ConvertGraphicSettings
 
 /// <summary>
 /// Converts a single raster image between formats (TIFF/PNG/JPEG/BMP/GIF) - the ColdNet
-/// equivalent of DCCONVGRAFIC. The target format is taken from the module's configured output
+/// equivalent of CNCONVGRAFIC. The target format is taken from the module's configured output
 /// file extension. Built on <c>Magick.NET</c> (Apache-2.0, cross-platform / Linux Docker compatible).
 /// </summary>
-[ModuleDefinition("ConvertGraphic", ModuleCategory.GraphicsConversion, "Convert Graphic", "Converts an image between TIFF/PNG/JPEG/BMP/GIF.", OriginalModule = "DCCONVGRAFIC", SettingsType = typeof(ConvertGraphicSettings))]
+[ModuleDefinition("ConvertGraphic", ModuleCategory.GraphicsConversion, "Convert Graphic", "Converts an image between TIFF/PNG/JPEG/BMP/GIF.", OriginalModule = "CNCONVGRAFIC", SettingsType = typeof(ConvertGraphicSettings))]
 public class ConvertGraphicModule : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

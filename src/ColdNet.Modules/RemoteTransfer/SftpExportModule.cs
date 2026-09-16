@@ -43,7 +43,7 @@ public class SftpExportSettings
 /// <c>FileMover</c>. Deletes the local source file(s) after a successful upload when the module's
 /// common "Delete source file" setting is enabled, same as every other module.
 /// </summary>
-[ModuleDefinition("SftpExport", ModuleCategory.RemoteTransfer, "SFTP/FTPS Export", "Uploads a job's files to a remote SFTP/FTPS/FTP server.", SettingsType = typeof(SftpExportSettings))]
+[ModuleDefinition("SftpExport", ModuleCategory.RemoteTransfer, "SFTP/FTPS Export", "Uploads a job's files to a remote SFTP/FTPS/FTP server.", SettingsType = typeof(SftpExportSettings), UsesFileExtension = false, UsesOutputFileExtension = false)]
 public class SftpExportModule : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

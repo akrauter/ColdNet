@@ -12,10 +12,10 @@ public class DeleteFilesSettings
 }
 
 /// <summary>
-/// Deletes intermediate files belonging to the job - the ColdNet equivalent of DCDELFILES,
+/// Deletes intermediate files belonging to the job - the ColdNet equivalent of CNDELFILES,
 /// typically used at the end of a chain to clean up working files after a successful export.
 /// </summary>
-[ModuleDefinition("DeleteFiles", ModuleCategory.FileHandling, "Delete Files", "Deletes intermediate files belonging to the job.", OriginalModule = "DCDELFILES", SettingsType = typeof(DeleteFilesSettings))]
+[ModuleDefinition("DeleteFiles", ModuleCategory.FileHandling, "Delete Files", "Deletes intermediate files belonging to the job.", OriginalModule = "CNDELFILES", SettingsType = typeof(DeleteFilesSettings), UsesFileExtension = false, UsesOutputFileExtension = false)]
 public class DeleteFilesModule : IColdModule
 {
     public Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

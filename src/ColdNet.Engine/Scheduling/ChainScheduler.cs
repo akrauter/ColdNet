@@ -11,11 +11,11 @@ using Microsoft.Extensions.Options;
 namespace ColdNet.Engine.Scheduling;
 
 /// <summary>
-/// Drives one processing pass over every chain assigned to this worker, following d.cold's
-/// documented scheduling order: for module position 0, 1, 2, ... process that module's ready
-/// jobs across every chain before moving to the next position (Prozesskette 1/Modul 1, Prozesskette
-/// 2/Modul 1, ..., Prozesskette 1/Modul 2, ...), then start over. Call <see cref="RunOnceAsync"/>
-/// in a loop (see ColdNet.Worker) with a short delay between passes.
+/// Drives one processing pass over every chain assigned to this worker, in this order: for module
+/// position 0, 1, 2, ... process that module's ready jobs across every chain before moving to the
+/// next position (Prozesskette 1/Modul 1, Prozesskette 2/Modul 1, ..., Prozesskette 1/Modul 2, ...),
+/// then start over. Call <see cref="RunOnceAsync"/> in a loop (see ColdNet.Worker) with a short
+/// delay between passes.
 /// </summary>
 public class ChainScheduler(
     IDbContextFactory<ColdNetDbContext> dbContextFactory,

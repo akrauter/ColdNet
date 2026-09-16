@@ -1,10 +1,10 @@
 namespace ColdNet.Core.Domain;
 
 /// <summary>
-/// A unit of work moving through a <see cref="ProcessChain"/>, equivalent to a d.cold "Job".
-/// All files that belong to the job share the <see cref="FilePrefix"/> as their file name
-/// (before the extension), living in <see cref="WorkDirectory"/> - exactly like d.cold groups
-/// same-prefix files (e.g. Rechnung.pdf + Rechnung.att) into a single job.
+/// A unit of work moving through a <see cref="ProcessChain"/>. All files that belong to the job
+/// share the <see cref="FilePrefix"/> as their file name (before the extension), living in
+/// <see cref="WorkDirectory"/> - same-prefix files (e.g. Rechnung.pdf + Rechnung.att) are grouped
+/// into a single job.
 /// </summary>
 public class Job
 {
@@ -27,7 +27,7 @@ public class Job
 
     /// <summary>
     /// Index (0-based) into the owning chain's <see cref="ProcessChain.Modules"/> list that this
-    /// job is currently waiting for / being processed by. DCIMPORT is always module 0.
+    /// job is currently waiting for / being processed by. CNIMPORT is always module 0.
     /// </summary>
     public int CurrentModuleOrder { get; set; }
 

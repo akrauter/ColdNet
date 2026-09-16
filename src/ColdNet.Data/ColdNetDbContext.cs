@@ -4,10 +4,9 @@ using Microsoft.EntityFrameworkCore;
 namespace ColdNet.Data;
 
 /// <summary>
-/// The job/configuration store. In d.cold terms this is the combined role of the d.cold database
-/// (job queue + status) and the Config directory (process chains, module configuration files) -
-/// here unified behind EF Core so both SQLite (default, zero-setup) and SQL Server are supported,
-/// matching the database systems d.cold itself requires.
+/// The job/configuration store - the combined role of a job queue/status database and a config
+/// directory of process chain/module configuration, unified behind EF Core so both SQLite
+/// (default, zero-setup) and SQL Server are supported.
 /// </summary>
 public class ColdNetDbContext(DbContextOptions<ColdNetDbContext> options) : DbContext(options)
 {

@@ -9,8 +9,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Registers <see cref="ColdNetDbContext"/> against SQLite (default - zero setup, good for a
     /// single worker) or SQL Server, chosen via the "ColdNet:Database:Provider" configuration key
-    /// ("Sqlite" | "SqlServer") and the matching connection string, mirroring the database choice
-    /// d.cold itself requires (SQL Server / Oracle / DB2).
+    /// ("Sqlite" | "SqlServer") and the matching connection string.
     /// </summary>
     public static IServiceCollection AddColdNetDataAccess(this IServiceCollection services, IConfiguration configuration)
     {

@@ -4,7 +4,7 @@ namespace ColdNet.Modules.FileHandling;
 
 public class FileMoverSettings
 {
-    /// <summary>Also moves job files found in sub-directories of the source directory (d.cold: "Also handle jobs in subdirectories").</summary>
+    /// <summary>Also moves job files found in sub-directories of the source directory.</summary>
     public bool IncludeSubdirectories { get; set; }
 
     public bool OverwriteExisting { get; set; } = true;
@@ -12,10 +12,10 @@ public class FileMoverSettings
 
 /// <summary>
 /// Moves every file sharing the job's prefix from the input directory to the output directory -
-/// the ColdNet equivalent of DCFILEMOVER, typically used between "deliver", "work" and "handover"
+/// the ColdNet equivalent of CNFILEMOVER, typically used between "deliver", "work" and "handover"
 /// stages of a chain.
 /// </summary>
-[ModuleDefinition("FileMover", ModuleCategory.FileHandling, "File Mover", "Moves all of a job's files from the input directory to the output directory.", OriginalModule = "DCFILEMOVER", SettingsType = typeof(FileMoverSettings))]
+[ModuleDefinition("FileMover", ModuleCategory.FileHandling, "File Mover", "Moves all of a job's files from the input directory to the output directory.", OriginalModule = "CNFILEMOVER", SettingsType = typeof(FileMoverSettings), UsesFileExtension = false, UsesOutputFileExtension = false)]
 public class FileMoverModule : IColdModule
 {
     public Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

@@ -8,8 +8,8 @@ namespace ColdNet.Core.Modules;
 
 /// <summary>
 /// Everything a module needs to process one job: the job itself, its chain/instance configuration,
-/// a logger, and a handful of path/backup/property helpers that mirror the conventions every
-/// d.cold module follows (General tab paths, the Save backup folder, the job's property file).
+/// a logger, and a handful of path/backup/property helpers that follow the conventions every
+/// ColdNet module observes (General tab paths, the Save backup folder, the job's property file).
 /// </summary>
 public sealed class ModuleExecutionContext(
     Job job,
@@ -82,7 +82,7 @@ public sealed class ModuleExecutionContext(
     /// <summary>
     /// The job's ambient property file - always <c>&lt;prefix&gt;.properties.json</c> next to the
     /// job's files, independent of whatever directory/extension the current module is configured
-    /// for. This is what property-extraction modules (DCSETVAR/DCPARSE-style) read and write, and
+    /// for. This is what property-extraction modules (CNSETVAR/CNPARSE-style) read and write, and
     /// what later modules (e.g. the EDMVault export) consume to build the DMS index file.
     /// </summary>
     public string PropertiesFilePath => Path.Combine(Job.WorkDirectory, Job.FilePrefix + ".properties.json");
@@ -96,7 +96,7 @@ public sealed class ModuleExecutionContext(
     /// <summary>
     /// If <see cref="CommonModuleSettings.Save"/> is set, copies every file sharing the job's
     /// prefix into <c>&lt;InputDirectory&gt;/SAVE/&lt;yyyyMMdd&gt;/</c> before processing touches
-    /// them, so the original state can always be recovered - exactly like d.cold's Save checkbox.
+    /// them, so the original state can always be recovered.
     /// </summary>
     public async Task BackupSourceFilesAsync(CancellationToken ct = default)
     {

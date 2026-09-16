@@ -10,9 +10,9 @@ public class UnpackArchiveSettings
 
 /// <summary>
 /// Extracts a ZIP archive belonging to the job into the output directory - the ColdNet
-/// equivalent of DCUNPACK.
+/// equivalent of CNUNPACK.
 /// </summary>
-[ModuleDefinition("UnpackArchive", ModuleCategory.Compression, "Unpack Archive", "Extracts a ZIP archive into the output directory.", OriginalModule = "DCUNPACK", SettingsType = typeof(UnpackArchiveSettings))]
+[ModuleDefinition("UnpackArchive", ModuleCategory.Compression, "Unpack Archive", "Extracts a ZIP archive into the output directory.", OriginalModule = "CNUNPACK", SettingsType = typeof(UnpackArchiveSettings), UsesOutputFileExtension = false)]
 public class UnpackArchiveModule : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

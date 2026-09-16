@@ -12,10 +12,10 @@ public class RenameFilesSettings
 }
 
 /// <summary>
-/// Renames a job's file extension - the ColdNet equivalent of DCRENFILES, e.g. used to drop the
+/// Renames a job's file extension - the ColdNet equivalent of CNRENFILES, e.g. used to drop the
 /// "$" import marker or to hand a file to a module that expects a different extension.
 /// </summary>
-[ModuleDefinition("RenameFiles", ModuleCategory.FileHandling, "Rename Files", "Renames a job file's extension.", OriginalModule = "DCRENFILES", SettingsType = typeof(RenameFilesSettings))]
+[ModuleDefinition("RenameFiles", ModuleCategory.FileHandling, "Rename Files", "Renames a job file's extension.", OriginalModule = "CNRENFILES", SettingsType = typeof(RenameFilesSettings), UsesFileExtension = false, UsesOutputFileExtension = false)]
 public class RenameFilesModule : IColdModule
 {
     public Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

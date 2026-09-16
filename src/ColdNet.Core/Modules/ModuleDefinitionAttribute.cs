@@ -1,3 +1,5 @@
+using ColdNet.Core.Domain;
+
 namespace ColdNet.Core.Modules;
 
 /// <summary>
@@ -17,7 +19,7 @@ public sealed class ModuleDefinitionAttribute(string typeName, ModuleCategory ca
 
     public string Description { get; } = description;
 
-    /// <summary>Name of the original d.cold module this one is modelled after, e.g. "DCIMPORT". Purely informational.</summary>
+    /// <summary>ColdNet's own historical reference code for this module, e.g. "CNIMPORT". Purely informational.</summary>
     public string? OriginalModule { get; init; }
 
     /// <summary>
@@ -26,4 +28,16 @@ public sealed class ModuleDefinitionAttribute(string typeName, ModuleCategory ca
     /// type's default values instead of an empty object.
     /// </summary>
     public Type? SettingsType { get; init; }
+
+    /// <summary>
+    /// Whether this module reads <see cref="CommonModuleSettings.FileExtension"/> (directly, or
+    /// via <c>ModuleExecutionContext.GetInputPath()</c> without an override). Defaults to true;
+    /// set false so the admin UI hides a "General" tab field that would have no effect for this
+    /// module - e.g. modules driven entirely by a <c>SourceFileMask</c>/glob instead, or with no
+    /// single input file at all (import modules, property-bag-only modules).
+    /// </summary>
+    public bool UsesFileExtension { get; init; } = true;
+
+    /// <summary>Same as <see cref="UsesFileExtension"/>, but for <see cref="CommonModuleSettings.OutputFileExtension"/>.</summary>
+    public bool UsesOutputFileExtension { get; init; } = true;
 }

@@ -11,16 +11,16 @@ public class EncodeTextSettings
     /// <summary>Target encoding name. Defaults to UTF-8.</summary>
     public string TargetEncoding { get; set; } = "utf-8";
 
-    /// <summary>Writes a byte-order-mark, required for ColdNet/d.cold-compatible consumers to recognize UTF-8.</summary>
+    /// <summary>Writes a byte-order-mark, required for some downstream consumers to recognize UTF-8.</summary>
     public bool WriteByteOrderMark { get; set; } = true;
 }
 
 /// <summary>
-/// Re-encodes a text file - the ColdNet equivalent of DCENCODETXT. d.cold's manual stresses that
-/// UTF-8 output must carry a BOM or downstream components may misinterpret it; this module makes
-/// that explicit instead of implicit.
+/// Re-encodes a text file - the ColdNet equivalent of CNENCODETXT. UTF-8 output should carry a
+/// BOM or downstream components may misinterpret it; this module makes that explicit instead of
+/// implicit.
 /// </summary>
-[ModuleDefinition("EncodeText", ModuleCategory.TextConversion, "Encode Text", "Converts a text file's character encoding, e.g. to UTF-8 with BOM.", OriginalModule = "DCENCODETXT", SettingsType = typeof(EncodeTextSettings))]
+[ModuleDefinition("EncodeText", ModuleCategory.TextConversion, "Encode Text", "Converts a text file's character encoding, e.g. to UTF-8 with BOM.", OriginalModule = "CNENCODETXT", SettingsType = typeof(EncodeTextSettings))]
 public class EncodeTextModule : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

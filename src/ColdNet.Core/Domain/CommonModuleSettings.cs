@@ -1,7 +1,7 @@
 namespace ColdNet.Core.Domain;
 
 /// <summary>
-/// The settings every d.cold module exposes on its "General" tab (input/output directory,
+/// The settings every ColdNet module exposes on its "General" tab (input/output directory,
 /// file extensions, Save/backup, delete source, DMS masking, append). Modules that do not need
 /// a particular field (e.g. a module with no output file) simply ignore it.
 /// </summary>
@@ -20,8 +20,8 @@ public class CommonModuleSettings
     public string? OutputFileExtension { get; set; }
 
     /// <summary>
-    /// Mirrors d.cold's "Save" checkbox: before processing, copy every file sharing the job's
-    /// prefix into a dated sub-folder of SAVE so the original state can always be reprocessed.
+    /// The "Save" checkbox: before processing, copy every file sharing the job's prefix into a
+    /// dated sub-folder of SAVE so the original state can always be reprocessed.
     /// </summary>
     public bool Save { get; set; }
 
@@ -29,8 +29,8 @@ public class CommonModuleSettings
     public bool DeleteSourceFile { get; set; }
 
     /// <summary>
-    /// Mirrors d.cold's "Mask for d.3" checkbox: escapes/encodes the output so it can be handed
-    /// off to the DMS without import errors (here: to EDMVault's file drop-off format).
+    /// The "Mask for DMS" checkbox: escapes/encodes the output so it can be handed off to the DMS
+    /// without import errors (here: to EDMVault's file drop-off format).
     /// </summary>
     public bool MaskForDms { get; set; }
 

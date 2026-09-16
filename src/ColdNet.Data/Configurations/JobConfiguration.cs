@@ -14,8 +14,7 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
         builder.Property(j => j.WorkDirectory).IsRequired().HasMaxLength(1000);
         builder.Property(j => j.ErrorMessage).HasMaxLength(4000);
 
-        // A chain can never have two jobs with the same file prefix at the same time -
-        // mirrors d.cold's (process id, job number) uniqueness constraint.
+        // A chain can never have two jobs with the same file prefix at the same time.
         builder.HasIndex(j => new { j.ProcessChainId, j.FilePrefix }).IsUnique();
         builder.HasIndex(j => new { j.ProcessChainId, j.Status, j.CurrentModuleOrder });
     }

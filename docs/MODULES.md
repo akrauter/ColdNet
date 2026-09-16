@@ -1,115 +1,117 @@
 # Module catalogue
 
-ColdNet's module categories mirror d.cold's own module chapters 1:1, so this table can be read
-side-by-side with the d.cold manual. "Status" is `✅ implemented` (a working ColdNet module
-exists), or `— not implemented` (no ColdNet module yet; add one following the pattern in
-[Adding a module](../README.md#adding-a-module) if you need it).
+Every module ColdNet could have, organized by category, each with its own reference code (the
+`OriginalModule` value on its `[ModuleDefinition]` attribute, shown in Admin as "ColdNet: CNxxx").
+"Status" is `✅ implemented` (a working ColdNet module exists), or `— not implemented` (no ColdNet
+module yet; add one following the pattern in [Adding a module](../README.md#adding-a-module) if
+you need it).
 
 The live version of this table - generated straight from `[ModuleDefinition]` attributes - is
 always available in the running app at **/modules**.
 
 ## Import modules
 
-| d.cold module | ColdNet module | Status |
+| ColdNet reference | ColdNet module | Status |
 |---|---|---|
-| DCIMPORT | `ColdImport` | ✅ implemented |
-| — (no d.cold equivalent) | `EdmVaultImport` | ✅ implemented - pulls new files from an EDMVault project via the REST API, the reverse of `EdmVaultExport`. See [README § EDMVault connectors](../README.md#edmvault-connectors). |
-| — (no d.cold equivalent) | `SftpImport` | ✅ implemented - pulls new files from a remote SFTP/FTPS/FTP server. See [Remote transfer](#remote-transfer-coldnet-specific---no-direct-dcold-category) below. |
+| CNIMPORT | `ColdImport` | ✅ implemented |
+| — (no reference code) | `EdmVaultImport` | ✅ implemented - pulls new files from an EDMVault project via the REST API, the reverse of `EdmVaultExport`. See [README § EDMVault connectors](../README.md#edmvault-connectors). |
+| — (no reference code) | `SftpImport` | ✅ implemented - pulls new files from a remote SFTP/FTPS/FTP server. See [Remote transfer](#remote-transfer-coldnet-specific) below. |
 
 ## Text converters
 
-| d.cold module | ColdNet module | Status |
+| ColdNet reference | ColdNet module | Status |
 |---|---|---|
-| DCREPLACE, DCCHANGE | `TextReplace` | ✅ implemented |
-| DCENCODETXT, DCSETBOM | `EncodeText` | ✅ implemented |
-| DCTXT2PDF | `TextToPdf` | ✅ implemented |
-| DCCHANGEBIN, DCCONVTEXT, DCDELFIRSTEMPTY, DCDELLASTLINES, DCDELLINES, DCDOS2WIN, DCGETLINES, DCHEADER, DCINSERTCC, DCMASKFORD3, DCRTF2TXT, DCSPLITLINES, DCTABULATOR, DCTXT2TIF, DCUNICODE2TXT, DCUNIX2WIN, DCWIN2UNIX | — | not implemented |
+| CNREPLACE, CNCHANGE | `TextReplace` | ✅ implemented |
+| CNENCODETXT, CNSETBOM | `EncodeText` | ✅ implemented |
+| CNTXT2PDF | `TextToPdf` | ✅ implemented |
+| CNCHANGEBIN, CNCONVTEXT, CNDELFIRSTEMPTY, CNDELLASTLINES, CNDELLINES, CNDOS2WIN, CNGETLINES, CNHEADER, CNINSERTCC, CNMASKFORD3, CNRTF2TXT, CNSPLITLINES, CNTABULATOR, CNTXT2TIF, CNUNICODE2TXT, CNUNIX2WIN, CNWIN2UNIX | — | not implemented |
 
 ## XML
 
-| d.cold module | ColdNet module | Status |
+| ColdNet reference | ColdNet module | Status |
 |---|---|---|
-| DCCONVXML | `PropertiesToXml` | ✅ implemented |
-| DCATER2XML | — | not implemented |
+| CNCONVXML | `PropertiesToXml` | ✅ implemented |
+| CNATER2XML | — | not implemented |
 
 ## Tools
 
-| d.cold module | ColdNet module | Status |
+| ColdNet reference | ColdNet module | Status |
 |---|---|---|
-| DCNOP | `NoOp` | ✅ implemented |
-| DCEXECUTE | `ShellExecute` | ✅ implemented |
-| DCWAITCONFIG, DCWAITXTIMES | — | not implemented |
+| CNNOP | `NoOp` | ✅ implemented |
+| CNEXECUTE | `ShellExecute` | ✅ implemented |
+| CNWAITCONFIG, CNWAITXTIMES | — | not implemented |
 
 ## Job separation
 
-| d.cold module | ColdNet module | Status |
+| ColdNet reference | ColdNet module | Status |
 |---|---|---|
-| DCBARCODE, DCJOBSEP | `BarcodeSplit` | ✅ implemented |
-| DCAFPSPLIT, DCFILESPLITTER, DCFORMULAR, DCHL72XML, DCJOBSEPEXT, DCJOBSEPPDF, DCOCRSPLIT, DCSPLITAFTERX, DCSPLITMAIL | — | not implemented |
+| CNBARCODE, CNJOBSEP | `BarcodeSplit` | ✅ implemented |
+| CNAFPSPLIT, CNFILESPLITTER, CNFORMULAR, CNHL72XML, CNJOBSEPEXT, CNJOBSEPPDF, CNOCRSPLIT, CNSPLITAFTERX, CNSPLITMAIL | — | not implemented |
 
 ## Extracting properties
 
-| d.cold module | ColdNet module | Status |
+| ColdNet reference | ColdNet module | Status |
 |---|---|---|
-| DCSETVAR, DCSETCONST | `SetVariable` | ✅ implemented |
-| DCGETID | `GenerateId` | ✅ implemented |
-| DCPARSE, DCEXTRACTLINE, DCVARFRTXT, DCVARAFTERKW | `ParseProperties` | ✅ implemented (regex-rule based, covers the common cases of all four) |
-| DCCHANGEPOS, DCCOUNTTIF, DCDBQUERY, DCGETBARCODES, DCGETFILEATTR, DCGETFILEHASH, DCGETIPTC, DCGODCLASSIFY, DCMIXVAR, DCOCR, DCOCRTEXT, DCPDF2TXT, DCSINGLE2MULTIVAR, DCTXT2JPL, DCVARFRPDF | — | not implemented (OCR modules need a Tesseract/ABBYY wrapper - see below) |
+| CNSETVAR, CNSETCONST | `SetVariable` | ✅ implemented |
+| CNGETID | `GenerateId` | ✅ implemented |
+| CNPARSE, CNEXTRACTLINE, CNVARFRTXT, CNVARAFTERKW | `ParseProperties` | ✅ implemented (regex-rule based, covers the common cases of all four) |
+| CNCHANGEPOS, CNCOUNTTIF, CNDBQUERY, CNGETBARCODES, CNGETFILEATTR, CNGETFILEHASH, CNGETIPTC, CNGODCLASSIFY, CNMIXVAR, CNOCR, CNOCRTEXT, CNPDF2TXT, CNSINGLE2MULTIVAR, CNTXT2JPL, CNVARFRPDF | — | not implemented (OCR modules need a Tesseract/ABBYY wrapper - see below) |
 
 ## Hosts
 
-| d.cold module | ColdNet module | Status |
+| ColdNet reference | ColdNet module | Status |
 |---|---|---|
-| DCAS42PCL, DCAS42TXT, DCAS4FETCHER, DCBS22TXT | — | not implemented - extension point (AS/400-specific, needs real target-system access to build/test against). For generic remote file pickup/delivery (not AS/400-specific), see `SftpImport`/`SftpExport` under [Remote transfer](#remote-transfer-coldnet-specific---no-direct-dcold-category) below. |
+| CNAS42PCL, CNAS42TXT, CNAS4FETCHER, CNBS22TXT | — | not implemented - extension point (AS/400-specific, needs real target-system access to build/test against). For generic remote file pickup/delivery (not AS/400-specific), see `SftpImport`/`SftpExport` under [Remote transfer](#remote-transfer-coldnet-specific) below. |
 
 ## ERP
 
-| d.cold module | ColdNet module | Status |
+| ColdNet reference | ColdNet module | Status |
 |---|---|---|
-| DCSAPFC, DCSAPFCATT, DCSAPSENDBC, DCTOA01 | — | not implemented - extension point (SAP-specific, needs an SAP connector/RFC library) |
+| CNSAPFC, CNSAPFCATT, CNSAPSENDBC, CNTOA01 | — | not implemented - extension point (SAP-specific, needs an SAP connector/RFC library) |
 
 ## Graphics converters
 
-| d.cold module | ColdNet module | Status |
+| ColdNet reference | ColdNet module | Status |
 |---|---|---|
-| DCCONVGRAFIC | `ConvertGraphic` | ✅ implemented (TIFF/PNG/JPEG/BMP/GIF via Magick.NET, Apache-2.0, cross-platform) |
-| DCMULTIPAGE, DCMULTIPAGEADV, DCMULTIPAGEEXT | `MultiPageTiff` | ✅ implemented |
-| DCPDFCONCAT, DCAPPENDPDF | `PdfConcat` | ✅ implemented |
-| DCOFFICE2PDF | `OfficeToPdf` | ✅ implemented (via LibreOffice headless instead of MS Office automation) |
-| DCPDF2PDF | `PdfToPdfA` | ✅ implemented - converts a PDF to a PDF/A-1b/2b/3b archival PDF via Ghostscript (AGPL-licensed, free for any use including commercial - invoked as an external process, like `OfficeToPdf`/LibreOffice, never bundled or linked). Ghostscript can only guarantee "b" (visual reproducibility) conformance, not "a"/"u" (tagged/accessible). |
-| DCADDTIF, DCAFP2TIF, DCDELPDFPAGES, DCDELTIFPAGES, DCEASYTIF, DCEASYTIF2, DCGETFORMAT, DCHGLAVTIF, DCMAKETIFDIN, DCOPTFORMAT, DCPCL2PDF, DCPCL2TIF, DCPCL2TXT, DCPDF2TIF, DCPDFAVALIDATE, DCPDFSEARCHABLE, DCPRESCRIBE2TXT, DCPRINTGL, DCPS2PDF, DCPS2TIFCOL, DCPS2TIF, DCPSPDF2TXT, DCREDLINE, DCROTATETIF, DCSHELLEXEC, DCSHELLPDF, DCTIF2DIN, DCTIF2PDF, DCTIFTIF, DCZUGFERD | — | not implemented (most need Ghostscript for PS/PCL; use `ShellExecute` to wrap Ghostscript/an external tool directly in the meantime) |
+| CNCONVGRAFIC | `ConvertGraphic` | ✅ implemented (TIFF/PNG/JPEG/BMP/GIF via Magick.NET, Apache-2.0, cross-platform) |
+| CNMULTIPAGE, CNMULTIPAGEADV, CNMULTIPAGEEXT | `MultiPageTiff` | ✅ implemented |
+| CNPDFCONCAT, CNAPPENDPDF | `PdfConcat` | ✅ implemented |
+| CNOFFICE2PDF | `OfficeToPdf` | ✅ implemented (via LibreOffice headless instead of MS Office automation) |
+| CNPDF2PDF | `PdfToPdfA` | ✅ implemented - converts a PDF to a PDF/A-1b/2b/3b archival PDF via Ghostscript (AGPL-licensed, free for any use including commercial - invoked as an external process, like `OfficeToPdf`/LibreOffice, never bundled or linked). Ghostscript can only guarantee "b" (visual reproducibility) conformance, not "a"/"u" (tagged/accessible). |
+| CNADDTIF, CNAFP2TIF, CNDELPDFPAGES, CNDELTIFPAGES, CNEASYTIF, CNEASYTIF2, CNGETFORMAT, CNHGLAVTIF, CNMAKETIFDIN, CNOPTFORMAT, CNPCL2PDF, CNPCL2TIF, CNPCL2TXT, CNPDF2TIF, CNPDFAVALIDATE, CNPDFSEARCHABLE, CNPRESCRIBE2TXT, CNPRINTGL, CNPS2PDF, CNPS2TIFCOL, CNPS2TIF, CNPSPDF2TXT, CNREDLINE, CNROTATETIF, CNSHELLEXEC, CNSHELLPDF, CNTIF2DIN, CNTIF2PDF, CNTIFTIF, CNZUGFERD | — | not implemented (most need Ghostscript for PS/PCL; use `ShellExecute` to wrap Ghostscript/an external tool directly in the meantime) |
 
 ## Compression
 
-| d.cold module | ColdNet module | Status |
+| ColdNet reference | ColdNet module | Status |
 |---|---|---|
-| DCUNPACK | `UnpackArchive` | ✅ implemented (ZIP only) |
-| DCTXT2LSX, DCPDFATTACHMENT | — | not implemented |
+| CNUNPACK | `UnpackArchive` | ✅ implemented (ZIP only) |
+| CNTXT2LSX, CNPDFATTACHMENT | — | not implemented |
 
 ## Case
 
-| d.cold module | ColdNet module | Status |
+| ColdNet reference | ColdNet module | Status |
 |---|---|---|
-| DCCASE | `CaseBranch` | ✅ implemented - full category coverage |
+| CNCASE | `CaseBranch` | ✅ implemented - full category coverage |
 
 ## File handling
 
-| d.cold module | ColdNet module | Status |
+| ColdNet reference | ColdNet module | Status |
 |---|---|---|
-| DCFILEMOVER | `FileMover` | ✅ implemented |
-| DCDELFILES | `DeleteFiles` | ✅ implemented |
-| DCRENFILES | `RenameFiles` | ✅ implemented - full category coverage |
+| CNFILEMOVER | `FileMover` | ✅ implemented |
+| CNDELFILES | `DeleteFiles` | ✅ implemented |
+| CNRENFILES | `RenameFiles` | ✅ implemented - full category coverage |
 
-## DMS export (ColdNet-specific - no direct d.cold category)
+## DMS export (ColdNet-specific)
 
-d.cold hands finished files to `d.3 hostimport` implicitly, via the "Mask for d.3" checkbox on
-whichever module runs last. ColdNet makes that hand-off an explicit final pipeline step instead:
+Legacy `d.3 hostimport`-style watchers pick up finished files implicitly, via a "Mask for DMS"
+checkbox on whichever module runs last. ColdNet makes that hand-off an explicit final pipeline
+step instead:
 
 | ColdNet module | Status |
 |---|---|
 | `EdmVaultExport` | ✅ implemented - file-drop or live REST connector, see [README § EDMVault connectors](../README.md#edmvault-connectors) |
 
-## Remote transfer (ColdNet-specific - no direct d.cold category)
+## Remote transfer (ColdNet-specific)
 
 Generic network file transfer, independent of any specific host system (contrast with the
 AS/400-specific `Hosts` category above). SFTP is recommended; FTPS (explicit TLS) and plain FTP

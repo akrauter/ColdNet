@@ -4,9 +4,9 @@ using Microsoft.Extensions.Options;
 namespace ColdNet.Worker;
 
 /// <summary>
-/// The ColdNet equivalent of a running "d.cold worker" process: repeatedly runs one full
-/// scheduling pass over every chain assigned to this worker (see <see cref="ChainSchedulerOptions.WorkerName"/>),
-/// waiting <see cref="ColdNetWorkerOptions.PollIntervalSeconds"/> between passes.
+/// The background loop: repeatedly runs one full scheduling pass over every chain assigned to
+/// this worker (see <see cref="ChainSchedulerOptions.WorkerName"/>), waiting
+/// <see cref="ColdNetWorkerOptions.PollIntervalSeconds"/> between passes.
 /// </summary>
 public class ChainWorker(
     ChainScheduler scheduler,

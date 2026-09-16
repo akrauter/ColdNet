@@ -5,8 +5,8 @@ public sealed record NewJobRequest(string FilePrefix, string WorkDirectory);
 
 /// <summary>
 /// Outcome of running one module against one job. On failure the job is parked in
-/// <see cref="Domain.JobStatus.Error"/> at the module that failed, exactly like d.cold: fix the
-/// cause, reset the status, and processing resumes from that module.
+/// <see cref="Domain.JobStatus.Error"/> at the module that failed: fix the cause, reset the
+/// status, and processing resumes from that module.
 /// </summary>
 public sealed class ModuleExecutionResult
 {
@@ -19,7 +19,7 @@ public sealed class ModuleExecutionResult
 
     /// <summary>
     /// When set, the job jumps to this module order next instead of the immediate successor -
-    /// used by conditional/branching modules (the DCCASE equivalent).
+    /// used by conditional/branching modules (the CNCASE equivalent).
     /// </summary>
     public int? JumpToModuleOrder { get; private init; }
 

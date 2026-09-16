@@ -4,7 +4,7 @@ using System.Text;
 namespace ColdNet.Core.Domain;
 
 /// <summary>
-/// Generates the 12-character unique job numbers d.cold's DCIMPORT produces when
+/// Generates the 12-character unique job numbers <c>CNIMPORT</c> produces when
 /// "Generate unique job ID" is enabled (e.g. "00106EL123317"), so multiple deliveries that
 /// happen to share a source file name never collide.
 /// </summary>

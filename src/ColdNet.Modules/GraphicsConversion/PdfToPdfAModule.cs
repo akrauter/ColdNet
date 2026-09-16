@@ -36,13 +36,13 @@ public class PdfToPdfASettings
 
 /// <summary>
 /// Converts a PDF to a PDF/A-conformant archival PDF via Ghostscript's <c>pdfwrite</c> device -
-/// the ColdNet equivalent of DCPDF2PDF's PDF/A conversion. Requires Ghostscript (AGPL-licensed,
+/// the ColdNet equivalent of CNPDF2PDF's PDF/A conversion. Requires Ghostscript (AGPL-licensed,
 /// free for any use including commercial - see
 /// <see href="https://www.ghostscript.com/licensing/index.html"/>) to be installed on the worker
 /// host and invoked as an external process, the same pattern <c>OfficeToPdf</c> uses for
 /// LibreOffice; ColdNet never bundles or links against it.
 /// </summary>
-[ModuleDefinition("PdfToPdfA", ModuleCategory.GraphicsConversion, "PDF to PDF/A", "Converts a PDF to a PDF/A-conformant archival PDF via Ghostscript.", OriginalModule = "DCPDF2PDF", SettingsType = typeof(PdfToPdfASettings))]
+[ModuleDefinition("PdfToPdfA", ModuleCategory.GraphicsConversion, "PDF to PDF/A", "Converts a PDF to a PDF/A-conformant archival PDF via Ghostscript.", OriginalModule = "CNPDF2PDF", SettingsType = typeof(PdfToPdfASettings))]
 public class PdfToPdfAModule : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

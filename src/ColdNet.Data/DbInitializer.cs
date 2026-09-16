@@ -6,7 +6,7 @@ namespace ColdNet.Data;
 
 public static class DbInitializer
 {
-    /// <summary>Applies pending migrations and seeds the built-in "default" process group and sample workflows, mirroring d.cold's always-present default group.</summary>
+    /// <summary>Applies pending migrations and seeds the built-in "default" process group and sample workflows.</summary>
     public static async Task MigrateAndSeedAsync(ColdNetDbContext db, CancellationToken cancellationToken = default)
     {
         EnsureSqliteDirectoryExists(db);

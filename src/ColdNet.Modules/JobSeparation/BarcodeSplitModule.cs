@@ -17,12 +17,12 @@ public class BarcodeSplitSettings
 
 /// <summary>
 /// Splits a multi-page TIFF into several new jobs wherever a page carries a barcode matching
-/// <see cref="BarcodeSplitSettings.SeparatorPattern"/> - the ColdNet equivalent of DCBARCODE /
-/// DCJOBSEP. The triggering job is finished once split; each resulting document continues down
+/// <see cref="BarcodeSplitSettings.SeparatorPattern"/> - the ColdNet equivalent of CNBARCODE /
+/// CNJOBSEP. The triggering job is finished once split; each resulting document continues down
 /// the same chain as its own job, starting at the module right after this one. Page rendering is
 /// built on <c>Magick.NET</c> and <c>ZXing.Net</c> (Apache-2.0, cross-platform / Linux Docker compatible).
 /// </summary>
-[ModuleDefinition("BarcodeSplit", ModuleCategory.JobSeparation, "Barcode Split", "Splits a multi-page TIFF into separate jobs at barcode separator pages.", OriginalModule = "DCBARCODE", SettingsType = typeof(BarcodeSplitSettings))]
+[ModuleDefinition("BarcodeSplit", ModuleCategory.JobSeparation, "Barcode Split", "Splits a multi-page TIFF into separate jobs at barcode separator pages.", OriginalModule = "CNBARCODE", SettingsType = typeof(BarcodeSplitSettings))]
 public class BarcodeSplitModule : IColdModule
 {
     public Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

@@ -6,9 +6,9 @@ namespace ColdNet.EdmVault.FileDrop;
 /// <summary>
 /// Default, file-system-only EDMVault connector: copies/moves the job's files into a hand-over
 /// directory and writes an index file (JSON or XML) with the document type and all collected
-/// properties next to them - the same "drop finished files + index file for pickup" pattern
-/// d.cold uses to hand jobs to d.3 hostimport. An EDMVault-side watcher/import job is expected to
-/// pick files up from <see cref="EdmVaultHandoverRequest.HandoverDirectory"/>.
+/// properties next to them - a "drop finished files + index file for pickup" pattern. An
+/// EDMVault-side watcher/import job is expected to pick files up from
+/// <see cref="EdmVaultHandoverRequest.HandoverDirectory"/>.
 /// </summary>
 public class FileDropEdmVaultHandoverWriter : IEdmVaultHandoverWriter
 {

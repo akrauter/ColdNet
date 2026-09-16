@@ -1,9 +1,9 @@
 namespace ColdNet.Core.Domain;
 
 /// <summary>
-/// Equivalent of d.cold's "d.3 support" tab: lets a module resolve document type / field names
-/// against the target DMS instead of hard-coded field indexes. Where d.cold logs into a d.3
-/// repository, ColdNet resolves this against the configured EDMVault document type catalog.
+/// The "DMS support" tab: lets a module resolve document type / field names against the target
+/// DMS instead of hard-coded field indexes. ColdNet resolves this against the configured EDMVault
+/// document type catalog.
 /// </summary>
 public class DmsSupportSettings
 {

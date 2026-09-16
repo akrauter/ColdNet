@@ -20,9 +20,9 @@ public class SetVariableSettings
 
 /// <summary>
 /// Writes constant or computed values into the job's property bag - the ColdNet equivalent of
-/// DCSETVAR/DCSETCONST.
+/// CNSETVAR/CNSETCONST.
 /// </summary>
-[ModuleDefinition("SetVariable", ModuleCategory.PropertyExtraction, "Set Variable", "Writes constant or computed values into the job's property bag.", OriginalModule = "DCSETVAR", SettingsType = typeof(SetVariableSettings))]
+[ModuleDefinition("SetVariable", ModuleCategory.PropertyExtraction, "Set Variable", "Writes constant or computed values into the job's property bag.", OriginalModule = "CNSETVAR", SettingsType = typeof(SetVariableSettings), UsesOutputFileExtension = false)]
 public class SetVariableModule : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

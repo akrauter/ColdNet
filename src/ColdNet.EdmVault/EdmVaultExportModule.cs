@@ -17,13 +17,11 @@ public class EdmVaultExportSettings
 }
 
 /// <summary>
-/// The final step of a chain: hands the job's files and collected properties over to EDMVault.
-/// In d.cold the same role is played by placing masked output files where d.3 hostimport can
-/// pick them up (see <see cref="CommonModuleSettings.MaskForDms"/>); this module makes that
-/// explicit as its own pipeline step and adds the index file hostimport would otherwise expect
-/// in JPL form.
+/// The final step of a chain: hands the job's files and collected properties over to EDMVault, by
+/// placing masked output files where a hostimport-style watcher can pick them up (see
+/// <see cref="CommonModuleSettings.MaskForDms"/>) plus an index file describing them.
 /// </summary>
-[ModuleDefinition("EdmVaultExport", ModuleCategory.DmsExport, "EDMVault Export", "Hands the job's files and properties over to EDMVault via the configured drop directory.", SettingsType = typeof(EdmVaultExportSettings))]
+[ModuleDefinition("EdmVaultExport", ModuleCategory.DmsExport, "EDMVault Export", "Hands the job's files and properties over to EDMVault via the configured drop directory.", SettingsType = typeof(EdmVaultExportSettings), UsesFileExtension = false, UsesOutputFileExtension = false)]
 public class EdmVaultExportModule(IEdmVaultHandoverWriter handoverWriter) : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

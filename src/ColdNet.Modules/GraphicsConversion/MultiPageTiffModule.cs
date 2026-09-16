@@ -11,9 +11,9 @@ public class MultiPageTiffSettings
 
 /// <summary>
 /// Combines several single-page images sharing the job's prefix into one multi-page TIFF - the
-/// ColdNet equivalent of DCMULTIPAGE. Built on <c>Magick.NET</c> (Apache-2.0, cross-platform).
+/// ColdNet equivalent of CNMULTIPAGE. Built on <c>Magick.NET</c> (Apache-2.0, cross-platform).
 /// </summary>
-[ModuleDefinition("MultiPageTiff", ModuleCategory.GraphicsConversion, "Multi-page TIFF", "Combines single-page images into one multi-page TIFF.", OriginalModule = "DCMULTIPAGE", SettingsType = typeof(MultiPageTiffSettings))]
+[ModuleDefinition("MultiPageTiff", ModuleCategory.GraphicsConversion, "Multi-page TIFF", "Combines single-page images into one multi-page TIFF.", OriginalModule = "CNMULTIPAGE", SettingsType = typeof(MultiPageTiffSettings), UsesFileExtension = false)]
 public class MultiPageTiffModule : IColdModule
 {
     public Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)

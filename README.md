@@ -1,18 +1,16 @@
 # ColdNet
 
-ColdNet is a .NET 10 re-implementation of the ideas behind **d.velop d.cold**: a codeless,
-modular batch-processing engine for handling incoming documents. You build a **process chain**
-out of small, reusable **modules** (import, convert, extract properties, split, export, ...),
-and a worker runs that chain against every file that shows up in a watched directory - no
-per-customer code, just configuration.
+ColdNet is a .NET 10 codeless, modular batch-processing engine for handling incoming documents,
+in the tradition of classic COLD (Computer Output to Laser Disk) batch-processing tools. You
+build a **process chain** out of small, reusable **modules** (import, convert, extract
+properties, split, export, ...), and a worker runs that chain against every file that shows up
+in a watched directory - no per-customer code, just configuration.
 
-Where d.cold hands finished documents to a **d.3** repository, ColdNet hands them to
-**EDMVault** (our own DMS), via a pluggable connector (file drop, or a live REST connector -
-see [EDMVault connectors](#edmvault-connectors) below).
+Finished documents are handed off to **EDMVault** (our own DMS), via a pluggable connector
+(file drop, or a live REST connector - see [EDMVault connectors](#edmvault-connectors) below).
 
-d.cold's admin/webadmin duo is replaced by a single Blazor Server web app, **ColdNet.Admin**,
-that provides the same core workflow: manage process groups and chains, configure modules,
-monitor and reset jobs.
+A single Blazor Server web app, **ColdNet.Admin**, covers the whole admin workflow: manage
+process groups and chains, configure modules, monitor and reset jobs.
 
 ## Solution layout
 
@@ -26,14 +24,14 @@ src/
                      RemoteTransfer)
   ColdNet.EdmVault   EDMVault: file-drop connector, REST connector, export + import modules
   ColdNet.Engine     ModuleRegistry (module discovery) + ChainScheduler (the scheduling loop)
-  ColdNet.Worker     Background service host - the "d.cold worker" equivalent
-  ColdNet.Admin      Blazor Server admin UI - the "d.cold admin / webadmin" equivalent
+  ColdNet.Worker     Background service host - runs the scheduling loop
+  ColdNet.Admin      Blazor Server admin UI - process groups/chains, modules, jobs
   ColdNet.SecretTool Command-line emergency tool to decrypt stored secrets (passwords, ...)
 tests/
   ColdNet.Core.Tests
   ColdNet.Engine.Tests
 docs/
-  MODULES.md         Full d.cold-module -> ColdNet-module mapping table
+  MODULES.md         Full ColdNet module catalogue, with each module's reference code
   PLACEHOLDERS.md    {prefix}/{input}/{Now:...} etc. reference + worked examples (also at /help)
   ENCRYPTION.md       How secrets are encrypted at rest + how to use ColdNet.SecretTool
 deploy/local-release/ Files bundled into the release packages (Start-*.bat/start-*.sh, README*.txt)
@@ -87,31 +85,29 @@ push/PR (on `ubuntu-latest`, so a green run is real proof of Linux compatibility
 assumption from package metadata), and only cuts a release - for both platforms - once that passes
 **and** the commit is on `master`.
 
-## Core concepts (mirrors d.cold's own terms)
+## Core concepts
 
-| d.cold term | ColdNet term | Notes |
+| Term | ColdNet type | Notes |
 |---|---|---|
 | Prozessgruppe (process group) | `ProcessGroup` | Pure organizational container for chains. |
 | Prozesskette (process chain) | `ProcessChain` | Ordered list of module instances. Module 0 is always an import module. |
 | Modul-Instanz | `ModuleInstance` | One configured step: common settings (dir/extension/save/...), DMS support settings, module-specific JSON settings. |
 | Job | `Job` | A file (or group of same-prefix files) moving through a chain. Status: `Ready` / `Working` / `Error` / `Finished`. |
-| d.cold worker | `ChainWorker` (in `ColdNet.Worker`) | Repeatedly runs `ChainScheduler.RunOnceAsync`. |
-| d.cold admin / webadmin | `ColdNet.Admin` | One Blazor Server app instead of a native + web pair. |
-| `$`-prefix trick on import | Same | DCIMPORT's exact mechanism is reproduced: `Test.pdf` -> `<jobnumber>.$pdf` so a directory scan never re-imports a file. |
-| JPL property file | `PropertyBag` (`<prefix>.properties.json`) | Same idea (a job-scoped variable bag with multi-value fields), JSON instead of the legacy JPL text format. |
-| General / d.3 support tabs | `CommonModuleSettings` / `DmsSupportSettings` | Same fields (Directory, Output directory, File extension, Save, Delete source, Mask for DMS, Append / DMS support enabled + Document type). |
+| `$`-prefix trick on import | Same | CNIMPORT's mechanism: `Test.pdf` -> `<jobnumber>.$pdf` so a directory scan never re-imports a file. |
+| JPL-style property file | `PropertyBag` (`<prefix>.properties.json`) | A job-scoped variable bag with multi-value fields, JSON instead of the legacy JPL text format. |
+| General / DMS support tabs | `CommonModuleSettings` / `DmsSupportSettings` | Directory, Output directory, File extension, Save, Delete source, Mask for DMS, Append / DMS support enabled + Document type. |
 
 ### Scheduling
 
-`ChainScheduler.RunOnceAsync` follows d.cold's documented order: for module position 0, then 1,
+`ChainScheduler.RunOnceAsync` processes jobs in this order: for module position 0, then 1,
 then 2, ... it processes that module's ready jobs across **every** chain assigned to this worker
-before moving to the next position, then starts over. A chain's `WorkerName` is the equivalent of
-d.cold's `/P` worker assignment - only one worker process should ever be configured with a given
-name for a given chain, matching d.cold's "a chain can only be loaded by one worker" rule.
+before moving to the next position, then starts over. A chain's `WorkerName` assigns it to a
+worker - only one worker process should ever be configured with a given name for a given chain,
+since a chain should only ever be loaded by one worker.
 
 On failure, a job is parked in `Error` at the module that failed (its `CurrentModuleOrder` does
 not advance) - fix the cause and reset it to `Ready` from the Jobs page, and processing resumes
-exactly where it left off, exactly like d.cold.
+exactly where it left off.
 
 ## Placeholders in module settings
 
@@ -134,8 +130,8 @@ Set `ColdNet:EdmVault:Connector` to choose how the `EdmVaultExport` module hands
 off:
 
 - **`FileDrop`** (default) - copies/moves the job's files into a hand-over directory and writes
-  a JSON (or XML) index file next to them, the same "drop files + index file for pickup" pattern
-  d.cold uses for `d.3 hostimport`. No API or credentials required.
+  a JSON (or XML) index file next to them, a "drop files + index file for pickup" pattern used by
+  `d.3 hostimport`-style watchers. No API or credentials required.
 - **`RestApi`** - talks to a live EdmVault.Api instance directly: logs in as a configured service
   account, resolves the module's "Document type" to an EDMVault project by title, uploads the
   file(s) (`POST /api/files`, `POST /api/files/{id}/secondary`), and writes the property bag as
@@ -175,14 +171,14 @@ against the database in an emergency (e.g. no access to the Admin UI). See
 [`docs/ENCRYPTION.md`](docs/ENCRYPTION.md) for how the encryption works, key management/rotation,
 and the tool's commands.
 
-## Known deviations from d.cold
+## Known limitations
 
 - **Module coverage**: this is a framework plus a representative module per category (~25
-  modules), not a line-for-line port of all ~90 d.cold modules. Host/mainframe conversion
-  (AS/400, SAP) and several niche graphics converters (Ghostscript-based PS/PCL page-description
+  modules), not a full catalogue of ~90+ possible modules. Host/mainframe conversion (AS/400,
+  SAP) and several niche graphics converters (Ghostscript-based PS/PCL page-description
   conversion, ABBYY OCR) are intentionally out of scope - see `docs/MODULES.md` for exactly what's
-  covered and what would need a new module. `SftpImport`/`SftpExport` (SFTP, FTPS, or plain FTP - see
-  `ColdNet.Modules/RemoteTransfer`) and `EdmVaultImport` have no d.cold equivalent at all; they
+  covered and what would need a new module. `SftpImport`/`SftpExport` (SFTP, FTPS, or plain FTP -
+  see `ColdNet.Modules/RemoteTransfer`) and `EdmVaultImport` have no reference code at all; they
   exist because ColdNet targets EDMVault instead of d.3 and needed a way to pull work in, not
   just hand it off.
 - **Finished jobs are kept**, not deleted or moved to a separate table, so the Jobs page stays

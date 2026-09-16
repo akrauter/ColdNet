@@ -1,8 +1,8 @@
 namespace ColdNet.Core.Domain;
 
 /// <summary>
-/// A container for process chains, equivalent to a d.cold "process group" - used purely to
-/// organize and bulk-operate (start/stop) related chains in the admin UI.
+/// A container for process chains ("process group") - used purely to organize and bulk-operate
+/// (start/stop) related chains in the admin UI.
 /// </summary>
 public class ProcessGroup
 {

@@ -25,9 +25,9 @@ public enum EdmVaultIndexFormat
 /// <summary>
 /// Delivers a finished job to EDMVault. The default implementation
 /// (<see cref="FileDrop.FileDropEdmVaultHandoverWriter"/>) drops files plus an index file into a
-/// hand-over directory, the same pattern d.cold uses to hand finished jobs to d.3 hostimport.
-/// Swap in a different implementation (e.g. calling a future EDMVault REST API) without touching
-/// <see cref="EdmVaultExportModule"/> itself.
+/// hand-over directory; <see cref="RestApi.RestApiEdmVaultHandoverWriter"/> instead calls the
+/// EDMVault REST API directly - either way, <see cref="EdmVaultExportModule"/> itself stays
+/// unaware of which connector is configured.
 /// </summary>
 public interface IEdmVaultHandoverWriter
 {

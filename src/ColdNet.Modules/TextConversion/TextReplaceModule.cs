@@ -18,10 +18,10 @@ public class TextReplaceSettings
 }
 
 /// <summary>
-/// Replaces characters/strings in a text file - the ColdNet equivalent of DCCHANGE/DCREPLACE.
+/// Replaces characters/strings in a text file - the ColdNet equivalent of CNCHANGE/CNREPLACE.
 /// Rules run in order, each against the output of the previous one.
 /// </summary>
-[ModuleDefinition("TextReplace", ModuleCategory.TextConversion, "Text Replace", "Replaces text or regex patterns in a text file.", OriginalModule = "DCREPLACE", SettingsType = typeof(TextReplaceSettings))]
+[ModuleDefinition("TextReplace", ModuleCategory.TextConversion, "Text Replace", "Replaces text or regex patterns in a text file.", OriginalModule = "CNREPLACE", SettingsType = typeof(TextReplaceSettings))]
 public class TextReplaceModule : IColdModule
 {
     public async Task<ModuleExecutionResult> ExecuteAsync(ModuleExecutionContext context, CancellationToken cancellationToken)
