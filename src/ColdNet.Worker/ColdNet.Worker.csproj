@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-ColdNet.Worker-e2b6b5e0-38e4-4737-a7bf-93ef0b95a4e3</UserSecretsId>
+    <!-- No culture-specific formatting anywhere in the app; avoids depending on the target Linux
+         host having libicu installed for the self-contained release to "just work". -->
+    <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
   <ItemGroup>

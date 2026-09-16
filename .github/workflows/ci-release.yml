@@ -43,11 +43,22 @@ jobs:
           name: test-results
           path: '**/test-results.trx'
 
-  release:
-    name: Build & publish local-execution release
+  version:
+    name: Determine release version
     needs: build-and-test
     # Only ever release from master, regardless of which event triggered the run.
     if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Determine version
+        id: version
+        run: echo "version=$(date +'%Y.%m.%d').${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
+  release-windows:
+    name: Build & publish Windows release
+    needs: version
     runs-on: windows-latest
     permissions:
       contents: write
@@ -58,13 +69,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Determine version
-        id: version
-        shell: pwsh
-        run: |
-          $version = "{0}.{1}" -f (Get-Date -Format "yyyy.MM.dd"), "${{ github.run_number }}"
-          echo "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Publish ColdNet.Admin (win-x64, self-contained)
         run: dotnet publish src/ColdNet.Admin/ColdNet.Admin.csproj --configuration Release --runtime win-x64 --self-contained true --output publish/Admin
@@ -82,14 +86,57 @@ jobs:
           Copy-Item deploy/local-release/Start-Worker.bat publish/
           Copy-Item deploy/local-release/README.txt publish/
           Compress-Archive -Path publish/Admin, publish/Worker, publish/SecretTool, publish/Start-Admin.bat, publish/Start-Worker.bat, publish/README.txt `
-            -DestinationPath ColdNet-win-x64-${{ steps.version.outputs.version }}.zip
+            -DestinationPath ColdNet-win-x64-${{ needs.version.outputs.version }}.zip
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: ColdNet ${{ steps.version.outputs.version }}
+          tag_name: v${{ needs.version.outputs.version }}
+          name: ColdNet ${{ needs.version.outputs.version }}
           target_commitish: master
           make_latest: true
           generate_release_notes: true
-          files: ColdNet-win-x64-${{ steps.version.outputs.version }}.zip
+          files: ColdNet-win-x64-${{ needs.version.outputs.version }}.zip
+
+  release-linux:
+    name: Build & publish Linux release
+    needs: [ version, release-windows ]
+    # Runs on ubuntu-latest (not cross-compiled from the Windows job) so `dotnet publish` sets the
+    # executable bit on the apphost binaries and start scripts itself - a tarball assembled on
+    # Windows/NTFS has no real Unix permission bits to preserve, so its executables would land
+    # non-executable after extraction on Linux.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Publish ColdNet.Admin (linux-x64, self-contained)
+        run: dotnet publish src/ColdNet.Admin/ColdNet.Admin.csproj --configuration Release --runtime linux-x64 --self-contained true --output publish/Admin
+
+      - name: Publish ColdNet.Worker (linux-x64, self-contained)
+        run: dotnet publish src/ColdNet.Worker/ColdNet.Worker.csproj --configuration Release --runtime linux-x64 --self-contained true --output publish/Worker
+
+      - name: Publish ColdNet.SecretTool (linux-x64, self-contained)
+        run: dotnet publish src/ColdNet.SecretTool/ColdNet.SecretTool.csproj --configuration Release --runtime linux-x64 --self-contained true --output publish/SecretTool
+
+      - name: Assemble local-execution package
+        run: |
+          cp deploy/local-release/start-admin.sh publish/
+          cp deploy/local-release/start-worker.sh publish/
+          cp deploy/local-release/README-linux.txt publish/README.txt
+          chmod +x publish/Admin/ColdNet.Admin publish/Worker/ColdNet.Worker publish/SecretTool/ColdNet.SecretTool
+          chmod +x publish/start-admin.sh publish/start-worker.sh
+          tar -czf ColdNet-linux-x64-${{ needs.version.outputs.version }}.tar.gz -C publish Admin Worker SecretTool start-admin.sh start-worker.sh README.txt
+
+      - name: Upload Linux release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.version.outputs.version }}
+          target_commitish: master
+          files: ColdNet-linux-x64-${{ needs.version.outputs.version }}.tar.gz

@@ -89,7 +89,7 @@ public class SampleWorkflowTests : IDisposable
             await using (var verifyDb = await dbFactory.CreateDbContextAsync())
             {
                 var job = await verifyDb.Jobs.SingleAsync(j => j.ProcessChainId == chainId);
-                Assert.Equal(JobStatus.Finished, job.Status);
+                Assert.True(job.Status == JobStatus.Finished, $"Expected Finished, got {job.Status}: {job.ErrorMessage}");
                 Assert.Equal("document1", job.FilePrefix);
             }
 

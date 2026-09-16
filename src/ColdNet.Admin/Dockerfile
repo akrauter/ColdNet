@@ -22,5 +22,11 @@ WORKDIR /app
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 
+# fonts-dejavu-core: Admin can also trigger a scheduling pass itself (the "Run now" button), so a
+# TextToPdf module needs a usable TTF font here too, not just in the Worker image.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends fontconfig fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "ColdNet.Admin.dll"]

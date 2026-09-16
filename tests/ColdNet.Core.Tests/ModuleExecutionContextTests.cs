@@ -57,12 +57,18 @@ public class ModuleExecutionContextTests
         Assert.Equal("hunter2", settings.Password);
     }
 
+    // Directory values below (@"C:\in" etc.) are arbitrary opaque strings fed straight into
+    // Path.Combine, same as the production code does - never touching the real filesystem - so
+    // expected paths must be built the same way (Path.Combine uses the OS-native separator) rather
+    // than hardcoded with a literal backslash, or these fail on Linux (where Path.Combine still
+    // joins with '/', leaving the literal backslashes from the input untouched).
+
     [Fact]
     public void GetInputPath_uses_module_directory_and_extension()
     {
         var context = CreateContext(new CommonModuleSettings { Directory = @"C:\in", FileExtension = "pdf" });
 
-        Assert.Equal(@"C:\in\ABC123.pdf", context.GetInputPath());
+        Assert.Equal(Path.Combine(@"C:\in", "ABC123.pdf"), context.GetInputPath());
     }
 
     [Fact]
@@ -70,7 +76,7 @@ public class ModuleExecutionContextTests
     {
         var context = CreateContext(new CommonModuleSettings { FileExtension = "txt" });
 
-        Assert.Equal(@"C:\jobs\work\ABC123.txt", context.GetInputPath());
+        Assert.Equal(Path.Combine(@"C:\jobs\work", "ABC123.txt"), context.GetInputPath());
     }
 
     [Fact]
@@ -78,7 +84,7 @@ public class ModuleExecutionContextTests
     {
         var context = CreateContext(new CommonModuleSettings { Directory = @"C:\in", FileExtension = "pdf" });
 
-        Assert.Equal(@"C:\in\ABC123.pdf", context.GetOutputPath());
+        Assert.Equal(Path.Combine(@"C:\in", "ABC123.pdf"), context.GetOutputPath());
     }
 
     [Fact]
@@ -92,7 +98,7 @@ public class ModuleExecutionContextTests
             OutputFileExtension = "tif",
         });
 
-        Assert.Equal(@"C:\out\ABC123.tif", context.GetOutputPath());
+        Assert.Equal(Path.Combine(@"C:\out", "ABC123.tif"), context.GetOutputPath());
     }
 
     [Theory]

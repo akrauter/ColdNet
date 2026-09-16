@@ -40,6 +40,13 @@ public class TextToPdfModule : IColdModule
             return ModuleExecutionResult.Fail($"Input file not found: {inputPath}");
         }
 
+        if (((SystemFontResolver)GlobalFontSettings.FontResolver!).GetFont("Courier New") is null)
+        {
+            return ModuleExecutionResult.Fail(
+                "No usable TTF font found on this system. On Linux, install e.g. 'fonts-dejavu-core' " +
+                "(already included in this project's Dockerfile); on Windows the system Fonts folder is used.");
+        }
+
         await context.BackupSourceFilesAsync(cancellationToken);
 
         var lines = await File.ReadAllLinesAsync(inputPath, cancellationToken);
@@ -83,19 +90,40 @@ public class TextToPdfModule : IColdModule
         return ModuleExecutionResult.Ok();
     }
 
-    /// <summary>Minimal font resolver so PdfSharp 6 (which no longer depends on GDI+) can run headless.</summary>
+    /// <summary>
+    /// Minimal font resolver so PdfSharp 6 (which no longer depends on GDI+) can run headless -
+    /// on Windows (its Fonts folder) as well as Linux, where there is no such folder and the
+    /// available monospace font depends on distro/image (e.g. GitHub's ubuntu-latest runner and
+    /// this project's own Dockerfile both carry fonts-dejavu-core). Any monospace-ish TTF found is
+    /// good enough here - a print-list style text dump doesn't need an exact "Courier New" match.
+    /// </summary>
     private sealed class SystemFontResolver : IFontResolver
     {
+        private static readonly string[] SearchDirectories =
+        [
+            Environment.GetFolderPath(Environment.SpecialFolder.Fonts), // Windows
+            "/usr/share/fonts/truetype/dejavu",                         // Debian/Ubuntu: fonts-dejavu-core
+            "/usr/share/fonts/truetype/liberation",                     // Debian/Ubuntu: fonts-liberation
+            "/usr/share/fonts/truetype/msttcorefonts",                  // Debian/Ubuntu: ttf-mscorefonts-installer
+            "/usr/share/fonts/truetype/ubuntu",                         // Ubuntu default image
+            "/usr/share/fonts/TTF",                                     // Arch/Fedora-family
+        ];
+
+        private static readonly string[] FileNames =
+        [
+            "cour.ttf", "consola.ttf",                                  // Windows
+            "DejaVuSansMono.ttf", "LiberationMono-Regular.ttf",         // Linux monospace
+            "Courier_New.ttf", "UbuntuMono-R.ttf",
+            "arial.ttf", "DejaVuSans.ttf", "LiberationSans-Regular.ttf", // last resort: any sans font
+        ];
+
         public byte[]? GetFont(string faceName)
         {
-            var candidates = new[]
-            {
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "cour.ttf"),
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "consola.ttf"),
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf"),
-            };
+            var path = SearchDirectories
+                .Where(dir => !string.IsNullOrEmpty(dir))
+                .SelectMany(dir => FileNames.Select(file => Path.Combine(dir, file)))
+                .FirstOrDefault(File.Exists);
 
-            var path = candidates.FirstOrDefault(File.Exists);
             return path is null ? null : File.ReadAllBytes(path);
         }
 

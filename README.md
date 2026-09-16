@@ -36,8 +36,8 @@ docs/
   MODULES.md         Full d.cold-module -> ColdNet-module mapping table
   PLACEHOLDERS.md    {prefix}/{input}/{Now:...} etc. reference + worked examples (also at /help)
   ENCRYPTION.md       How secrets are encrypted at rest + how to use ColdNet.SecretTool
-deploy/local-release/ Files bundled into the release zip (Start-*.bat, README.txt)
-.github/workflows/   CI (build+test) and CD (local-execution release from master)
+deploy/local-release/ Files bundled into the release packages (Start-*.bat/start-*.sh, README*.txt)
+.github/workflows/   CI (build+test) and CD (win-x64 + linux-x64 local-execution releases from master)
 data/                Shared SQLite database file (dev default)
 ```
 
@@ -67,13 +67,23 @@ Admin UI will be accessible at http://localhost:5202. The Worker container inclu
 ### Or: download a ready-to-run release
 
 Every push to `master` that passes CI publishes a new
-[GitHub release](https://github.com/akrauter/ColdNet/releases) with a
-`ColdNet-win-x64-<version>.zip` asset - a self-contained build (no .NET install required) with
-`Admin/`, `Worker/`, `SecretTool/`, `Start-Admin.bat` and `Start-Worker.bat`. Unzip it, run `Start-Admin.bat`,
-open http://localhost:5202, then run `Start-Worker.bat` to actually process chains in the
-background. See `deploy/local-release/README.txt` (bundled in the zip) for details. See
-`.github/workflows/ci-release.yml` for the pipeline itself: it builds and tests on every push/PR,
-and only cuts a release once those pass **and** the commit is on `master`.
+[GitHub release](https://github.com/akrauter/ColdNet/releases) with self-contained builds (no
+.NET install required) for both common platforms:
+
+- **`ColdNet-win-x64-<version>.zip`** - `Admin/`, `Worker/`, `SecretTool/`, `Start-Admin.bat`,
+  `Start-Worker.bat`. Unzip it, run `Start-Admin.bat`, open http://localhost:5202, then run
+  `Start-Worker.bat` to actually process chains in the background. See
+  `deploy/local-release/README.txt` (bundled in the zip) for details.
+- **`ColdNet-linux-x64-<version>.tar.gz`** - same layout, `start-admin.sh`/`start-worker.sh`
+  instead of the `.bat` files (already executable). See `deploy/local-release/README-linux.txt`
+  (bundled in the archive) for details, including the small set of external dependencies some
+  modules need on a bare Linux host (`TextToPdf` needs any installed TTF font, `OfficeToPdf` needs
+  LibreOffice) - the Docker images below already carry them.
+
+See `.github/workflows/ci-release.yml` for the pipeline itself: it builds and tests on every
+push/PR (on `ubuntu-latest`, so a green run is real proof of Linux compatibility, not just an
+assumption from package metadata), and only cuts a release - for both platforms - once that passes
+**and** the commit is on `master`.
 
 ## Core concepts (mirrors d.cold's own terms)
 

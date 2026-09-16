@@ -1,0 +1,4 @@
+# Shell scripts must keep LF line endings regardless of the committer's platform/git config -
+# they're extracted into the Linux release package and run there (a CRLF shebang line fails to
+# execute on Linux).
+*.sh text eol=lf

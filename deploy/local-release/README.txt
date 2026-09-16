@@ -25,9 +25,12 @@ Admin und Worker teilen sich eine gemeinsame SQLite-Datenbank in einem
 "data"-Ordner, der beim ersten Start automatisch neben diesem README
 angelegt wird.
 
-Hinweis: Die Grafik-/Barcode-Module (ConvertGraphic, MultiPageTiff,
-BarcodeSplit) benoetigen Windows (GDI+) und funktionieren nur in diesem
-Windows-x64-Paket.
+Hinweis: Der Modul "Office to PDF" (LibreOffice headless) benoetigt eine
+separat installierte LibreOffice-Installation - "soffice.exe" muss im PATH
+liegen oder im Modul als voller Pfad konfiguriert werden. Alle anderen
+Module (inkl. Grafik-/Barcode-Module wie ConvertGraphic, MultiPageTiff,
+BarcodeSplit) sind in diesem self-contained Paket bereits enthalten und
+benoetigen keine weitere Installation.
 
 Kennwoerter (z.B. bei SFTP-Modulen) werden in der Datenbank ausschliesslich
 verschluesselt gespeichert und im Admin nur maskiert angezeigt. Falls ein
