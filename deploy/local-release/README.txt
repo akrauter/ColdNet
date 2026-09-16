@@ -25,12 +25,19 @@ Admin und Worker teilen sich eine gemeinsame SQLite-Datenbank in einem
 "data"-Ordner, der beim ersten Start automatisch neben diesem README
 angelegt wird.
 
-Hinweis: Der Modul "Office to PDF" (LibreOffice headless) benoetigt eine
-separat installierte LibreOffice-Installation - "soffice.exe" muss im PATH
-liegen oder im Modul als voller Pfad konfiguriert werden. Alle anderen
-Module (inkl. Grafik-/Barcode-Module wie ConvertGraphic, MultiPageTiff,
-BarcodeSplit) sind in diesem self-contained Paket bereits enthalten und
-benoetigen keine weitere Installation.
+Hinweis zu externen Abhaengigkeiten einzelner Module:
+  - "Office to PDF" (LibreOffice headless) benoetigt eine separat
+    installierte LibreOffice-Installation - "soffice.exe" muss im PATH
+    liegen oder im Modul als voller Pfad konfiguriert werden.
+  - "PDF to PDF/A" benoetigt eine separat installierte Ghostscript-
+    Installation (kostenlos, auch fuer kommerzielle Nutzung -
+    https://www.ghostscript.com) sowie ein RGB-ICC-Farbprofil; beides wird
+    im Modul konfiguriert ("Ghostscript Path" bzw. "Icc Profile Path" -
+    Ghostscript bringt unter "<Installationsordner>\iccprofiles\srgb.icc"
+    bereits ein passendes Profil mit).
+  Alle anderen Module (inkl. Grafik-/Barcode-Module wie ConvertGraphic,
+  MultiPageTiff, BarcodeSplit) sind in diesem self-contained Paket bereits
+  enthalten und benoetigen keine weitere Installation.
 
 Kennwoerter (z.B. bei SFTP-Modulen) werden in der Datenbank ausschliesslich
 verschluesselt gespeichert und im Admin nur maskiert angezeigt. Falls ein

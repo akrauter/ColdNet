@@ -22,10 +22,15 @@ WORKDIR /app
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 
-# fonts-dejavu-core: Admin can also trigger a scheduling pass itself (the "Run now" button), so a
-# TextToPdf module needs a usable TTF font here too, not just in the Worker image.
+# Admin can also trigger a scheduling pass itself (the "Run now" button), so it needs the same
+# module dependencies as the Worker image: fonts-dejavu-core (TextToPdf), ghostscript +
+# icc-profiles-free (PdfToPdfA - point IccProfilePath at /usr/share/color/icc/sRGB.icc).
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends fontconfig fonts-dejavu-core \
+    && apt-get install -y --no-install-recommends \
+       fontconfig \
+       fonts-dejavu-core \
+       ghostscript \
+       icc-profiles-free \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/publish .

@@ -76,7 +76,8 @@ always available in the running app at **/modules**.
 | DCMULTIPAGE, DCMULTIPAGEADV, DCMULTIPAGEEXT | `MultiPageTiff` | ✅ implemented |
 | DCPDFCONCAT, DCAPPENDPDF | `PdfConcat` | ✅ implemented |
 | DCOFFICE2PDF | `OfficeToPdf` | ✅ implemented (via LibreOffice headless instead of MS Office automation) |
-| DCADDTIF, DCAFP2TIF, DCDELPDFPAGES, DCDELTIFPAGES, DCEASYTIF, DCEASYTIF2, DCGETFORMAT, DCHGLAVTIF, DCMAKETIFDIN, DCOPTFORMAT, DCPCL2PDF, DCPCL2TIF, DCPCL2TXT, DCPDF2PDF, DCPDF2TIF, DCPDFAVALIDATE, DCPDFSEARCHABLE, DCPRESCRIBE2TXT, DCPRINTGL, DCPS2PDF, DCPS2TIFCOL, DCPS2TIF, DCPSPDF2TXT, DCREDLINE, DCROTATETIF, DCSHELLEXEC, DCSHELLPDF, DCTIF2DIN, DCTIF2PDF, DCTIFTIF, DCZUGFERD | — | not implemented (most need Ghostscript for PS/PCL; use `ShellExecute` to wrap Ghostscript/an external tool directly in the meantime) |
+| DCPDF2PDF | `PdfToPdfA` | ✅ implemented - converts a PDF to a PDF/A-1b/2b/3b archival PDF via Ghostscript (AGPL-licensed, free for any use including commercial - invoked as an external process, like `OfficeToPdf`/LibreOffice, never bundled or linked). Ghostscript can only guarantee "b" (visual reproducibility) conformance, not "a"/"u" (tagged/accessible). |
+| DCADDTIF, DCAFP2TIF, DCDELPDFPAGES, DCDELTIFPAGES, DCEASYTIF, DCEASYTIF2, DCGETFORMAT, DCHGLAVTIF, DCMAKETIFDIN, DCOPTFORMAT, DCPCL2PDF, DCPCL2TIF, DCPCL2TXT, DCPDF2TIF, DCPDFAVALIDATE, DCPDFSEARCHABLE, DCPRESCRIBE2TXT, DCPRINTGL, DCPS2PDF, DCPS2TIFCOL, DCPS2TIF, DCPSPDF2TXT, DCREDLINE, DCROTATETIF, DCSHELLEXEC, DCSHELLPDF, DCTIF2DIN, DCTIF2PDF, DCTIFTIF, DCZUGFERD | — | not implemented (most need Ghostscript for PS/PCL; use `ShellExecute` to wrap Ghostscript/an external tool directly in the meantime) |
 
 ## Compression
 

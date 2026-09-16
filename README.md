@@ -62,7 +62,9 @@ You can run both Admin and Worker in Linux containers via Docker Compose:
 ```bash
 docker compose up -d
 ```
-Admin UI will be accessible at http://localhost:5202. The Worker container includes headless LibreOffice for Office-to-PDF conversion (`OfficeToPdf`).
+Admin UI will be accessible at http://localhost:5202. Both containers include headless LibreOffice
+for Office-to-PDF conversion (`OfficeToPdf`) and Ghostscript + a free sRGB ICC profile for PDF/A
+conversion (`PdfToPdfA` - point its `IccProfilePath` setting at `/usr/share/color/icc/sRGB.icc`).
 
 ### Or: download a ready-to-run release
 
@@ -175,11 +177,11 @@ and the tool's commands.
 
 ## Known deviations from d.cold
 
-- **Module coverage**: this is a framework plus a representative module per category (~23
+- **Module coverage**: this is a framework plus a representative module per category (~25
   modules), not a line-for-line port of all ~90 d.cold modules. Host/mainframe conversion
-  (AS/400, SAP) and several niche graphics converters (Ghostscript-based PS/PCL handling,
-  ABBYY OCR) are intentionally out of scope - see `docs/MODULES.md` for exactly what's covered
-  and what would need a new module. `SftpImport`/`SftpExport` (SFTP, FTPS, or plain FTP - see
+  (AS/400, SAP) and several niche graphics converters (Ghostscript-based PS/PCL page-description
+  conversion, ABBYY OCR) are intentionally out of scope - see `docs/MODULES.md` for exactly what's
+  covered and what would need a new module. `SftpImport`/`SftpExport` (SFTP, FTPS, or plain FTP - see
   `ColdNet.Modules/RemoteTransfer`) and `EdmVaultImport` have no d.cold equivalent at all; they
   exist because ColdNet targets EDMVault instead of d.3 and needed a way to pull work in, not
   just hand it off.

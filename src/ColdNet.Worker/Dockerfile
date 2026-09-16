@@ -16,16 +16,21 @@ COPY src/ src/
 WORKDIR "/src/src/ColdNet.Worker"
 RUN dotnet publish "ColdNet.Worker.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# Runtime stage (includes LibreOffice for headless Office-to-PDF conversion)
+# Runtime stage (includes LibreOffice for Office-to-PDF, Ghostscript for PDF-to-PDF/A)
 FROM mcr.microsoft.com/dotnet/runtime:10.0 AS final
 WORKDIR /app
 
-# Install LibreOffice for headless office document conversion (OfficeToPdf module)
+# libreoffice-nogui: headless office document conversion (OfficeToPdf module)
+# ghostscript + icc-profiles-free: PDF/A conversion (PdfToPdfA module) - point the module's
+# IccProfilePath setting at /usr/share/color/icc/sRGB.icc, a stable path independent of the
+# Ghostscript version (unlike Ghostscript's own bundled profile under /usr/share/ghostscript/<version>/)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        libreoffice-nogui \
        fontconfig \
        fonts-dejavu-core \
+       ghostscript \
+       icc-profiles-free \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/publish .

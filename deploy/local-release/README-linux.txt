@@ -33,6 +33,12 @@ Hinweise zu externen Abhaengigkeiten einzelner Module:
   - "Office to PDF" (LibreOffice headless) braucht eine separat installierte
     LibreOffice-Installation - "soffice" muss im PATH liegen oder im Modul
     als voller Pfad konfiguriert werden (z.B. "apt install libreoffice-nogui").
+  - "PDF to PDF/A" braucht eine separat installierte Ghostscript-Installation
+    (kostenlos, auch fuer kommerzielle Nutzung - "apt install ghostscript")
+    sowie ein RGB-ICC-Farbprofil, z.B. aus dem Paket "icc-profiles-free"
+    ("apt install icc-profiles-free", Profil dann unter
+    "/usr/share/color/icc/sRGB.icc") - Pfade werden im Modul konfiguriert
+    ("Ghostscript Path" bzw. "Icc Profile Path").
   Alle anderen Module (inkl. Grafik-/Barcode-Module wie ConvertGraphic,
   MultiPageTiff, BarcodeSplit - auf Magick.NET, nicht GDI+) sind in diesem
   self-contained Paket bereits enthalten.

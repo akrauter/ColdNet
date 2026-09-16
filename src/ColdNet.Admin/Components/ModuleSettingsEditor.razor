@@ -568,6 +568,7 @@ else
         formatted = Regex.Replace(formatted, @"\bXml\b", "XML", RegexOptions.IgnoreCase);
         formatted = Regex.Replace(formatted, @"\bBom\b", "BOM", RegexOptions.IgnoreCase);
         formatted = Regex.Replace(formatted, @"\bUrl\b", "URL", RegexOptions.IgnoreCase);
+        formatted = Regex.Replace(formatted, @"\bIcc\b", "ICC", RegexOptions.IgnoreCase);
         return formatted;
     }
 
