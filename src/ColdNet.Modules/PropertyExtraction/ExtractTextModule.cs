@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using ColdNet.Core.Modules;
 using UglyToad.PdfPig;
+using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 
 namespace ColdNet.Modules.PropertyExtraction;
 
@@ -98,7 +99,13 @@ public class ExtractTextModule : IColdModule
         var sb = new StringBuilder();
         foreach (var page in document.GetPages())
         {
-            sb.AppendLine(page.Text);
+            // Page.Text just concatenates every text-showing operation with no separator at all -
+            // two DrawString calls placed on separate lines (e.g. "Invoice Number: 4711" then
+            // "Customer: Acme GmbH", as TextToPdf renders one line per call) come back glued
+            // together as "...4711Customer:...", silently corrupting anything a following
+            // ParseProperties regex step tries to match. ContentOrderTextExtractor reconstructs
+            // reading order (and line breaks) from each word/letter's actual position instead.
+            sb.AppendLine(ContentOrderTextExtractor.GetText(page));
         }
 
         var text = sb.ToString();

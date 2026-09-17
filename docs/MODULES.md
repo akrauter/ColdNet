@@ -33,6 +33,12 @@ always available in the running app at **/modules**.
 | CNCONVXML | `PropertiesToXml` | ✅ implemented |
 | CNATER2XML | — | not implemented |
 
+## CSV
+
+| ColdNet reference | ColdNet module | Status |
+|---|---|---|
+| — (no reference code) | `PropertiesToCsv` | ✅ implemented - writes the job's property bag as a CSV file, one row per key/value pair (`;`-delimited by default, opens correctly in a German-locale Excel), for handing extracted values (e.g. from `ExtractText` + `ParseProperties`) to a downstream system or a spreadsheet instead of an XML index file. |
+
 ## Tools
 
 | ColdNet reference | ColdNet module | Status |

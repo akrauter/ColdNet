@@ -50,6 +50,14 @@ public class ExtractTextModuleTests : IDisposable
         var extractedText = await File.ReadAllTextAsync(Path.Combine(_dir, "DOC01.txt"));
         Assert.Contains("Invoice Number: 4711", extractedText);
         Assert.Contains("Customer: Acme GmbH", extractedText);
+
+        // The two source lines must stay on separate lines (a word boundary is not enough) - a
+        // naive extractor that just concatenates every text-showing operation with no separator
+        // would glue them into "...4711Customer:...", which still contains both substrings above
+        // but silently breaks any \s-anchored regex a following ParseProperties step relies on.
+        var invoiceNumberMatch = System.Text.RegularExpressions.Regex.Match(extractedText, @"Invoice Number:\s*(\S+)");
+        Assert.True(invoiceNumberMatch.Success);
+        Assert.Equal("4711", invoiceNumberMatch.Groups[1].Value);
     }
 
     [Fact]

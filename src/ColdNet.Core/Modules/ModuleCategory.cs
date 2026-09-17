@@ -1,15 +1,16 @@
 namespace ColdNet.Core.Modules;
 
 /// <summary>
-/// The module catalogue's categories (Importmodule, Textkonvertierung, XML, Tools, Job-Separation,
-/// Eigenschaftsermittlung, Hostkonvertierung, ERP, Grafikkonvertierung, Komprimierung, Bedingte
-/// Zuweisung, Dateibehandlung).
+/// The module catalogue's categories (Importmodule, Textkonvertierung, XML, CSV, Tools,
+/// Job-Separation, Eigenschaftsermittlung, Hostkonvertierung, ERP, Grafikkonvertierung,
+/// Komprimierung, Bedingte Zuweisung, Dateibehandlung).
 /// </summary>
 public enum ModuleCategory
 {
     Import,
     TextConversion,
     Xml,
+    Csv,
     Tools,
     JobSeparation,
     PropertyExtraction,
