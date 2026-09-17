@@ -73,6 +73,29 @@
     </tbody>
 </table>
 
+<h4 class="mt-4">Rename Files pattern placeholders</h4>
+<p class="text-muted">
+    Used in <code>RenameFiles</code>'s <code>NewFileNamePattern</code> setting - only read when
+    it's non-empty; leave it blank to keep the module's original single-file
+    <code>FromExtension</code>/<code>ToExtension</code> behavior.
+</p>
+<table class="table table-sm">
+    <thead><tr><th style="width:160px">Placeholder</th><th>Resolves to</th></tr></thead>
+    <tbody>
+        <tr><td><code>{JobPrefix}</code></td><td>The job's file prefix.</td></tr>
+        <tr><td><code>{DocumentType}</code></td><td>The module's DMS support "Document type" field (empty string if not set).</td></tr>
+        <tr><td><code>{FileName}</code></td><td>File name (with extension) of the file being renamed.</td></tr>
+        <tr><td><code>{FileNameWithoutExtension}</code></td><td>File name without extension of the file being renamed.</td></tr>
+        <tr><td><code>{Extension}</code></td><td>Extension (without dot) of the file being renamed, with any leading "$" import marker already stripped (e.g. <code>$pdf</code> &rarr; <code>pdf</code>).</td></tr>
+        <tr><td><code>{Now}</code> / <code>{Now:format}</code></td><td>Current local date/time, same as above.</td></tr>
+        <tr><td><code>{Counter}</code></td><td>An ever-incrementing sequence number, persisted on the module instance (never reset per job) - padded to <strong>Counter Digits</strong> digits using <strong>Counter Fill Char</strong>, e.g. 4 digits/"0" &rarr; <code>0007</code>.</td></tr>
+    </tbody>
+</table>
+<p class="text-muted">
+    When set, every file matching <code>&lt;job prefix&gt;.*</code> in the module's input directory
+    is discovered and renamed with this pattern - not just one file with a known extension.
+</p>
+
 <h2 class="mt-5">Worked examples</h2>
 
 <div class="card mb-3">
@@ -84,6 +107,25 @@
             prefix, regardless of extension. Leave it as-is to hand over everything the chain
             produced; narrow it (e.g. <code>{prefix}.pdf</code>) to hand over only one file type
             and leave the rest for a later step.
+        </p>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Drop the "$" marker before an SFTP/EDMVault export, whatever the source extension</h5>
+        <p class="card-text">
+            A chain whose <code>ColdImport</code> step accepts several file types (e.g.
+            <strong>File Mask</strong> <code>*.*</code>) can't strip CNIMPORT's "$" marker with a
+            fixed <code>FromExtension</code>/<code>ToExtension</code> pair, since that would need
+            one <code>RenameFiles</code> instance per possible extension. Set
+            <strong>New File Name Pattern</strong> to <code>{JobPrefix}.{Extension}</code> instead
+            - <code>{Extension}</code> already excludes the "$", so this works for every incoming
+            extension in one step, right before an <code>SftpExport</code>/<code>EdmVaultExport</code>
+            module that would otherwise upload/hand over a file still named e.g.
+            <code>BEAXH1TS60QW.$pdf</code>. Add a running document number on top with
+            <code>{JobPrefix}_{Counter}.{Extension}</code>, <strong>Counter Digits</strong>
+            <code>6</code>.
         </p>
     </div>
 </div>
