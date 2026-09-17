@@ -34,6 +34,7 @@ docs/
   MODULES.md         Full ColdNet module catalogue, with each module's reference code
   PLACEHOLDERS.md    {prefix}/{input}/{Now:...} etc. reference + worked examples (also at /help)
   ENCRYPTION.md       How secrets are encrypted at rest + how to use ColdNet.SecretTool
+templates/            dotnet new item templates for scaffolding a new module (VS/Rider/CLI)
 deploy/local-release/ Files bundled into the release packages (Start-*.bat/start-*.sh, README*.txt)
 docker-compose.yml   Admin + Worker in Linux containers, see "Running it" below
 src/ColdNet.Admin/Dockerfile, src/ColdNet.Worker/Dockerfile  Built by docker-compose.yml and CI
@@ -137,6 +138,11 @@ position 0) into `ColdNet.Modules` (or your own plugin assembly), decorate it wi
 `[ModuleDefinition(...)]`, and it appears in the admin UI's "Add module" picker automatically -
 no registry edits needed. See any existing module (e.g. `ColdNet.Modules/TextConversion/TextReplaceModule.cs`)
 for the pattern, and `docs/MODULES.md` for the full catalogue.
+
+`templates/` has `dotnet new` item templates (`coldnet-module` / `coldnet-import-module`) that
+scaffold a new module's starting file for you - install once with `dotnet new install ./templates`
+and they show up both on the command line and inside Visual Studio's/Rider's "Add New Item" /
+"New from Template" dialogs. See `templates/README.md`.
 
 ## EDMVault connectors
 

@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "ColdNet",
+  "classifications": [ "ColdNet", "Module" ],
+  "identity": "ColdNet.Module",
+  "name": "ColdNet Module",
+  "shortName": "coldnet-module",
+  "sourceName": "ModuleTemplate",
+  "preferNameDirectory": false,
+  "tags": {
+    "language": "C#",
+    "type": "item"
+  },
+  "symbols": {
+    "Category": {
+      "type": "parameter",
+      "datatype": "choice",
+      "choices": [
+        { "choice": "TextConversion" },
+        { "choice": "Xml" },
+        { "choice": "Tools" },
+        { "choice": "JobSeparation" },
+        { "choice": "PropertyExtraction" },
+        { "choice": "Hosts" },
+        { "choice": "Erp" },
+        { "choice": "GraphicsConversion" },
+        { "choice": "Compression" },
+        { "choice": "Case" },
+        { "choice": "FileHandling" },
+        { "choice": "DmsExport" },
+        { "choice": "RemoteTransfer" }
+      ],
+      "defaultValue": "Tools",
+      "replaces": "MODULE_CATEGORY",
+      "description": "The module's category (ColdNet.Core.Modules.ModuleCategory) - which group it's listed under in the admin UI's 'Add module' picker."
+    },
+    "DisplayName": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "My Module",
+      "replaces": "MODULE_DISPLAY_NAME",
+      "description": "Human-readable name shown in the admin UI, e.g. \"Text Replace\"."
+    },
+    "ModuleDescription": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "Describe what this module does.",
+      "replaces": "MODULE_DESCRIPTION",
+      "description": "One-sentence description shown next to the module in the admin UI's module picker."
+    }
+  },
+  "primaryOutputs": [ { "path": "ModuleTemplate.cs" } ]
+}
