@@ -29,6 +29,8 @@ ENV DOTNET_ENVIRONMENT=Docker
 # ghostscript + icc-profiles-free: PDF/A conversion (PdfToPdfA module) - point the module's
 # IccProfilePath setting at /usr/share/color/icc/sRGB.icc, a stable path independent of the
 # Ghostscript version (unlike Ghostscript's own bundled profile under /usr/share/ghostscript/<version>/)
+# tesseract-ocr + language packs: image OCR (ExtractText module) - "tesseract" is already on PATH
+# once installed, matching the module's default TesseractPath.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        libreoffice-nogui \
@@ -36,6 +38,9 @@ RUN apt-get update \
        fonts-dejavu-core \
        ghostscript \
        icc-profiles-free \
+       tesseract-ocr \
+       tesseract-ocr-deu \
+       tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/publish .

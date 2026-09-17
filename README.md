@@ -66,8 +66,10 @@ builds both images locally:
 docker compose up -d
 ```
 Admin UI will be accessible at http://localhost:5202. Both containers include headless LibreOffice
-for Office-to-PDF conversion (`OfficeToPdf`) and Ghostscript + a free sRGB ICC profile for PDF/A
-conversion (`PdfToPdfA` - point its `IccProfilePath` setting at `/usr/share/color/icc/sRGB.icc`).
+for Office-to-PDF conversion (`OfficeToPdf`), Ghostscript + a free sRGB ICC profile for PDF/A
+conversion (`PdfToPdfA` - point its `IccProfilePath` setting at `/usr/share/color/icc/sRGB.icc`),
+and Tesseract with German/English language packs for image OCR (`ExtractText` - already on PATH,
+matching its default `TesseractPath` setting).
 
 Pre-built images are also published to Docker Hub on every push to `master` that passes CI -
 [`akrauter/coldnet-admin`](https://hub.docker.com/r/akrauter/coldnet-admin) and
@@ -196,8 +198,12 @@ and the tool's commands.
 - **Module coverage**: this is a framework plus a representative module per category (~25
   modules), not a full catalogue of ~90+ possible modules. Host/mainframe conversion (AS/400,
   SAP) and several niche graphics converters (Ghostscript-based PS/PCL page-description
-  conversion, ABBYY OCR) are intentionally out of scope - see `docs/MODULES.md` for exactly what's
-  covered and what would need a new module. `SftpImport`/`SftpExport` (SFTP, FTPS, or plain FTP -
+  conversion, ABBYY-specific OCR) are intentionally out of scope - see `docs/MODULES.md` for
+  exactly what's covered and what would need a new module. Basic key/value extraction from PDF or
+  image files is covered (`ExtractText`, via Tesseract for images - a *searchable* PDF's own text
+  layer needs no OCR at all; a *scanned* PDF with no text layer isn't read directly, convert its
+  pages to images first), chained into `ParseProperties` for the actual regex-based extraction.
+  `SftpImport`/`SftpExport` (SFTP, FTPS, or plain FTP -
   see `ColdNet.Modules/RemoteTransfer`) and `EdmVaultImport` have no reference code at all; they
   exist because ColdNet targets EDMVault instead of d.3 and needed a way to pull work in, not
   just hand it off.
