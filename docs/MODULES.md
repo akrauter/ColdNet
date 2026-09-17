@@ -55,7 +55,8 @@ always available in the running app at **/modules**.
 | CNSETVAR, CNSETCONST | `SetVariable` | ✅ implemented |
 | CNGETID | `GenerateId` | ✅ implemented |
 | CNPARSE, CNEXTRACTLINE, CNVARFRTXT, CNVARAFTERKW | `ParseProperties` | ✅ implemented (regex-rule based, covers the common cases of all four) |
-| CNCHANGEPOS, CNCOUNTTIF, CNDBQUERY, CNGETBARCODES, CNGETFILEATTR, CNGETFILEHASH, CNGETIPTC, CNGODCLASSIFY, CNMIXVAR, CNOCR, CNOCRTEXT, CNPDF2TXT, CNSINGLE2MULTIVAR, CNTXT2JPL, CNVARFRPDF | — | not implemented (OCR modules need a Tesseract/ABBYY wrapper - see below) |
+| CNPDF2TXT, CNOCR, CNOCRTEXT | `ExtractText` | ✅ implemented - extracts a PDF's embedded text layer (PdfPig, no external tool) or OCRs an image (Tesseract, external process - not bundled) into a `.txt` file; chain a `ParseProperties` step after it for the actual key/value extraction. Scanned PDFs (no text layer) aren't read directly - convert their pages to images first. |
+| CNCHANGEPOS, CNCOUNTTIF, CNDBQUERY, CNGETBARCODES, CNGETFILEATTR, CNGETFILEHASH, CNGETIPTC, CNGODCLASSIFY, CNMIXVAR, CNSINGLE2MULTIVAR, CNTXT2JPL, CNVARFRPDF | — | not implemented |
 
 ## Hosts
 

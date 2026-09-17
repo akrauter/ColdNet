@@ -35,6 +35,13 @@ Hinweis zu externen Abhaengigkeiten einzelner Module:
     im Modul konfiguriert ("Ghostscript Path" bzw. "Icc Profile Path" -
     Ghostscript bringt unter "<Installationsordner>\iccprofiles\srgb.icc"
     bereits ein passendes Profil mit).
+  - "Extract Text" benoetigt fuer Bilddateien (nicht fuer PDFs mit
+    Textebene) eine separat installierte Tesseract-OCR-Installation
+    (kostenlos, auch fuer kommerzielle Nutzung -
+    https://github.com/tesseract-ocr/tesseract) inkl. der benoetigten
+    Sprachpakete (z.B. "deu" fuer Deutsch) - "tesseract.exe" muss im PATH
+    liegen oder im Modul als voller Pfad konfiguriert werden ("Tesseract
+    Path").
   Alle anderen Module (inkl. Grafik-/Barcode-Module wie ConvertGraphic,
   MultiPageTiff, BarcodeSplit) sind in diesem self-contained Paket bereits
   enthalten und benoetigen keine weitere Installation.

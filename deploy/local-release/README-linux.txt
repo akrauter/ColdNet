@@ -39,6 +39,12 @@ Hinweise zu externen Abhaengigkeiten einzelner Module:
     ("apt install icc-profiles-free", Profil dann unter
     "/usr/share/color/icc/sRGB.icc") - Pfade werden im Modul konfiguriert
     ("Ghostscript Path" bzw. "Icc Profile Path").
+  - "Extract Text" braucht fuer Bilddateien (nicht fuer PDFs mit Textebene)
+    eine separat installierte Tesseract-OCR-Installation samt Sprachpaketen
+    (kostenlos, auch fuer kommerzielle Nutzung - z.B.
+    "apt install tesseract-ocr tesseract-ocr-deu") - "tesseract" muss im
+    PATH liegen oder im Modul als voller Pfad konfiguriert werden
+    ("Tesseract Path").
   Alle anderen Module (inkl. Grafik-/Barcode-Module wie ConvertGraphic,
   MultiPageTiff, BarcodeSplit - auf Magick.NET, nicht GDI+) sind in diesem
   self-contained Paket bereits enthalten.

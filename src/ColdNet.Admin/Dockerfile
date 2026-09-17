@@ -28,13 +28,18 @@ ENV ASPNETCORE_URLS=http://+:8080
 
 # Admin can also trigger a scheduling pass itself (the "Run now" button), so it needs the same
 # module dependencies as the Worker image: fonts-dejavu-core (TextToPdf), ghostscript +
-# icc-profiles-free (PdfToPdfA - point IccProfilePath at /usr/share/color/icc/sRGB.icc).
+# icc-profiles-free (PdfToPdfA - point IccProfilePath at /usr/share/color/icc/sRGB.icc),
+# tesseract-ocr + language packs (ExtractText's image OCR path - "tesseract" is already on PATH
+# once installed, matching the module's default TesseractPath).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        fontconfig \
        fonts-dejavu-core \
        ghostscript \
        icc-profiles-free \
+       tesseract-ocr \
+       tesseract-ocr-deu \
+       tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/publish .
