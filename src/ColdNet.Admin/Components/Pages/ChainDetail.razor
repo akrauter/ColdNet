@@ -1,6 +1,7 @@
 @page "/chains/{ChainId:guid}"
 @rendermode InteractiveServer
 @using System.Text.Json
+@using ColdNet.Core.ExportImport
 @using ColdNet.Core.Security
 @inject IDbContextFactory<ColdNetDbContext> DbFactory
 @inject ModuleRegistry Registry
@@ -27,6 +28,9 @@ else
             <a class="btn btn-outline-secondary me-2" href="/api/export/chains/@ChainId" download="@($"{_chain.Name}.coldchain.json")">
                 Export
             </a>
+            <button class="btn btn-outline-secondary me-2" @onclick="DuplicateChainAsync" disabled="@_duplicating" title="Creates a stopped copy of this chain in the same process group">
+                @(_duplicating ? "Duplicating..." : "Duplicate")
+            </button>
             <button class="btn btn-outline-secondary me-2" @onclick="RunNowAsync" disabled="@_running">
                 @(_running ? "Running..." : "Run now")
             </button>
@@ -216,6 +220,7 @@ else
     private string _newModuleType = string.Empty;
     private string? _statusMessage;
     private bool _running;
+    private bool _duplicating;
 
     private Guid? _editingModuleId;
     private string _editDisplayName = string.Empty;
@@ -449,6 +454,42 @@ else
         await db.SaveChangesAsync();
 
         await LoadAsync();
+    }
+
+    private async Task DuplicateChainAsync()
+    {
+        _duplicating = true;
+        try
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+            var chain = await db.ProcessChains
+                .Include(c => c.Modules)
+                .FirstOrDefaultAsync(c => c.Id == ChainId);
+            if (chain is null)
+            {
+                return;
+            }
+
+            // Reuse the same DTO round-trip Export/Import already use (new Guids for the chain and
+            // every module, settings preserved as-is) - SettingsJson is copied byte-for-byte here,
+            // unlike a file import, since it's already-encrypted ciphertext valid for this same
+            // instance's key, not plaintext that needs (re-)encrypting.
+            var dto = ProcessExportImportService.ToDto(chain);
+            var duplicate = ProcessExportImportService.FromDto(dto, chain.ProcessGroupId);
+            duplicate.Name = $"{chain.Name} (Copy)";
+            // Never start a duplicate automatically - it still points at the same Directory/settings
+            // as the original, so if both ran at once every incoming file would be picked up twice.
+            duplicate.IsRunning = false;
+
+            db.ProcessChains.Add(duplicate);
+            await db.SaveChangesAsync();
+
+            Nav.NavigateTo($"/chains/{duplicate.Id}");
+        }
+        finally
+        {
+            _duplicating = false;
+        }
     }
 
     private async Task DeleteChainAsync()
