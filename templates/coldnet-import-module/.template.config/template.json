@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "ColdNet",
+  "classifications": [ "ColdNet", "Module", "Import" ],
+  "identity": "ColdNet.ImportModule",
+  "name": "ColdNet Import Module",
+  "shortName": "coldnet-import-module",
+  "sourceName": "ImportModuleTemplate",
+  "preferNameDirectory": false,
+  "tags": {
+    "language": "C#",
+    "type": "item"
+  },
+  "symbols": {
+    "DisplayName": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "My Import Module",
+      "replaces": "MODULE_DISPLAY_NAME",
+      "description": "Human-readable name shown in the admin UI, e.g. \"SFTP/FTPS Import\"."
+    },
+    "ModuleDescription": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "Describe what this import module watches or pulls from.",
+      "replaces": "MODULE_DESCRIPTION",
+      "description": "One-sentence description shown next to the module in the admin UI's module picker."
+    }
+  },
+  "primaryOutputs": [ { "path": "ImportModuleTemplate.cs" } ]
+}
