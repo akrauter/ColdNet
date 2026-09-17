@@ -82,6 +82,7 @@ public class SftpImportModule : IJobImportModule
         ModuleInstance moduleInstance,
         ILogger logger,
         ISecretProtector secretProtector,
+        ISet<string> existingFilePrefixes,
         CancellationToken cancellationToken)
     {
         var common = moduleInstance.CommonSettings;
@@ -138,6 +139,7 @@ public class SftpImportModule : IJobImportModule
             var jobNumber = settings.GenerateUniqueJobId
                 ? JobNumberGenerator.GenerateUniqueJobId()
                 : Path.GetFileNameWithoutExtension(file.Name);
+            jobNumber = JobNumberGenerator.MakeUnique(jobNumber, existingFilePrefixes);
             var localPath = Path.Combine(common.Directory, jobNumber + Path.GetExtension(file.Name));
 
             try

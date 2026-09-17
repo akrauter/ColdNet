@@ -16,11 +16,18 @@ public interface IJobImportModule
     /// fields in <paramref name="moduleInstance"/>'s settings (e.g. a remote server password) - an
     /// import module has no <c>ModuleExecutionContext</c> to get it from since it runs before any
     /// job exists, unlike <see cref="IColdModule.ExecuteAsync"/>.
+    /// <paramref name="existingFilePrefixes"/> holds every <c>FilePrefix</c> already used by this
+    /// chain (a job's <c>FilePrefix</c> is unique per chain, and finished jobs are kept forever, so
+    /// a naively-reused prefix - e.g. re-importing a same-named file with "Generate unique job ID"
+    /// off - would collide). Pass the chosen job number through <see cref="JobNumberGenerator.MakeUnique"/>
+    /// against this set *before* renaming/moving any file to match it, so the physical file and the
+    /// resulting <see cref="NewJobRequest.FilePrefix"/> always agree.
     /// </summary>
     Task<IReadOnlyList<NewJobRequest>> DiscoverJobsAsync(
         ProcessChain chain,
         ModuleInstance moduleInstance,
         ILogger logger,
         ISecretProtector secretProtector,
+        ISet<string> existingFilePrefixes,
         CancellationToken cancellationToken);
 }

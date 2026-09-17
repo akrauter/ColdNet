@@ -105,7 +105,8 @@ assumption from package metadata), and only cuts a release - for both platforms 
 | Prozessgruppe (process group) | `ProcessGroup` | Pure organizational container for chains. |
 | Prozesskette (process chain) | `ProcessChain` | Ordered list of module instances. Module 0 is always an import module. |
 | Modul-Instanz | `ModuleInstance` | One configured step: common settings (dir/extension/save/...), DMS support settings, module-specific JSON settings. |
-| Job | `Job` | A file (or group of same-prefix files) moving through a chain. Status: `Ready` / `Working` / `Error` / `Finished`. |
+| Job | `Job` | A file (or group of same-prefix files) moving through a chain. Status: `Ready` / `Working` / `Error` / `Finished`. `FilePrefix` is guaranteed unique per chain - a re-delivered file that would otherwise collide with an existing (e.g. finished, still-kept) job gets a `-2`, `-3`, ... suffix instead of being silently skipped. |
+| Job log | `JobLogEntry` | One row per module a job has passed through (success or failure, with any error message) - the full step-by-step history, shown via the "Log" button on the Jobs page, independent of the job's current live status. |
 | `$`-prefix trick on import | Same | CNIMPORT's mechanism: `Test.pdf` -> `<jobnumber>.$pdf` so a directory scan never re-imports a file. |
 | JPL-style property file | `PropertyBag` (`<prefix>.properties.json`) | A job-scoped variable bag with multi-value fields, JSON instead of the legacy JPL text format. |
 | General / DMS support tabs | `CommonModuleSettings` / `DmsSupportSettings` | Directory, Output directory, File extension, Save, Delete source, Mask for DMS, Append / DMS support enabled + Document type. |

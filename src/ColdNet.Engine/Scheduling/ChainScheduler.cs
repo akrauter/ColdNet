@@ -85,10 +85,22 @@ public class ChainScheduler(
         var module = (IJobImportModule)serviceProvider.GetRequiredService(catalogEntry.ClrType);
         var moduleLogger = loggerFactory.CreateLogger(catalogEntry.ClrType);
 
+        // A job's FilePrefix is unique per chain (finished jobs are kept forever, so a plain
+        // "does a job with this prefix already exist" check would otherwise leave a re-dropped
+        // same-named file silently renamed-and-orphaned by the import module below with no job
+        // ever created for it - see JobNumberGenerator.MakeUnique). The import module resolves any
+        // collision itself, before it renames/moves a single file, so the physical file always
+        // matches the FilePrefix it's reported back under.
+        var existingFilePrefixes = await db.Jobs
+            .Where(j => j.ProcessChainId == chain.Id)
+            .Select(j => j.FilePrefix)
+            .ToListAsync(ct);
+        var existingFilePrefixSet = new HashSet<string>(existingFilePrefixes, StringComparer.Ordinal);
+
         IReadOnlyList<NewJobRequest> discovered;
         try
         {
-            discovered = await module.DiscoverJobsAsync(chain, moduleInstance, moduleLogger, secretProtector, ct);
+            discovered = await module.DiscoverJobsAsync(chain, moduleInstance, moduleLogger, secretProtector, existingFilePrefixSet, ct);
         }
         catch (Exception ex)
         {
@@ -98,14 +110,8 @@ public class ChainScheduler(
 
         foreach (var request in discovered)
         {
-            var exists = await db.Jobs.AnyAsync(j => j.ProcessChainId == chain.Id && j.FilePrefix == request.FilePrefix, ct);
-            if (exists)
-            {
-                continue;
-            }
-
             var nextOrder = 1;
-            db.Jobs.Add(new Job
+            var job = new Job
             {
                 ProcessChainId = chain.Id,
                 FilePrefix = request.FilePrefix,
@@ -113,6 +119,15 @@ public class ChainScheduler(
                 Status = nextOrder >= chain.Modules.Count ? JobStatus.Finished : JobStatus.Ready,
                 CurrentModuleOrder = nextOrder,
                 FinishedAtUtc = nextOrder >= chain.Modules.Count ? DateTime.UtcNow : null,
+            };
+            db.Jobs.Add(job);
+            db.JobLogEntries.Add(new JobLogEntry
+            {
+                JobId = job.Id,
+                ModuleOrder = 0,
+                ModuleTypeName = moduleInstance.ModuleTypeName,
+                Success = true,
+                Message = $"Imported from {request.WorkDirectory}",
             });
         }
 
@@ -171,6 +186,14 @@ public class ChainScheduler(
                 job.ErrorMessage = result.ErrorMessage;
                 job.ErrorModuleOrder = moduleOrder;
                 job.UpdatedAtUtc = DateTime.UtcNow;
+                db.JobLogEntries.Add(new JobLogEntry
+                {
+                    JobId = job.Id,
+                    ModuleOrder = moduleOrder,
+                    ModuleTypeName = moduleInstance.ModuleTypeName,
+                    Success = false,
+                    Message = result.ErrorMessage,
+                });
                 await db.SaveChangesAsync(ct);
                 logger.LogWarning("Job {Prefix} failed at module {ModuleType} ({ModuleOrder}) in chain {ChainName}: {Error}",
                     job.FilePrefix, moduleInstance.ModuleTypeName, moduleOrder, chain.Name, result.ErrorMessage);
@@ -182,11 +205,18 @@ public class ChainScheduler(
             job.WorkDirectory = context.OutputDirectory;
             job.ErrorMessage = null;
             job.ErrorModuleOrder = null;
+            db.JobLogEntries.Add(new JobLogEntry
+            {
+                JobId = job.Id,
+                ModuleOrder = moduleOrder,
+                ModuleTypeName = moduleInstance.ModuleTypeName,
+                Success = true,
+            });
 
             foreach (var spawned in result.SpawnedJobs)
             {
                 var spawnedNextOrder = moduleOrder + 1;
-                db.Jobs.Add(new Job
+                var spawnedJob = new Job
                 {
                     ProcessChainId = chain.Id,
                     FilePrefix = spawned.FilePrefix,
@@ -194,6 +224,15 @@ public class ChainScheduler(
                     Status = spawnedNextOrder >= chain.Modules.Count ? JobStatus.Finished : JobStatus.Ready,
                     CurrentModuleOrder = spawnedNextOrder,
                     FinishedAtUtc = spawnedNextOrder >= chain.Modules.Count ? DateTime.UtcNow : null,
+                };
+                db.Jobs.Add(spawnedJob);
+                db.JobLogEntries.Add(new JobLogEntry
+                {
+                    JobId = spawnedJob.Id,
+                    ModuleOrder = moduleOrder,
+                    ModuleTypeName = moduleInstance.ModuleTypeName,
+                    Success = true,
+                    Message = $"Spawned from job {job.FilePrefix}",
                 });
             }
 

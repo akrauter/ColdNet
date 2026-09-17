@@ -25,4 +25,29 @@ public static class JobNumberGenerator
 
         return sb.ToString();
     }
+
+    /// <summary>
+    /// Returns <paramref name="candidate"/> unchanged if it isn't in <paramref name="existingFilePrefixes"/>,
+    /// otherwise appends "-2", "-3", ... until a free value is found. The chosen value is added to
+    /// <paramref name="existingFilePrefixes"/> before returning, so a single import pass that discovers
+    /// several same-named files in a row never hands out the same prefix twice either - a job's
+    /// <c>FilePrefix</c> is unique per chain, and this is the only place that's decided, before any
+    /// file is renamed on disk to match it.
+    /// </summary>
+    public static string MakeUnique(string candidate, ISet<string> existingFilePrefixes)
+    {
+        if (existingFilePrefixes.Add(candidate))
+        {
+            return candidate;
+        }
+
+        for (var suffix = 2; ; suffix++)
+        {
+            var next = $"{candidate}-{suffix}";
+            if (existingFilePrefixes.Add(next))
+            {
+                return next;
+            }
+        }
+    }
 }

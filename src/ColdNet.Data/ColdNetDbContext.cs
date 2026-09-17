@@ -18,6 +18,8 @@ public class ColdNetDbContext(DbContextOptions<ColdNetDbContext> options) : DbCo
 
     public DbSet<Job> Jobs => Set<Job>();
 
+    public DbSet<JobLogEntry> JobLogEntries => Set<JobLogEntry>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ColdNetDbContext).Assembly);
