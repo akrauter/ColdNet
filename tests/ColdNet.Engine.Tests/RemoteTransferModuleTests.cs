@@ -52,7 +52,7 @@ public class RemoteTransferModuleTests
             SettingsJson = """{"Host":"sftp.example.com"}""",
         };
 
-        var result = await new SftpImportModule().DiscoverJobsAsync(chain, moduleInstance, NullLogger.Instance, NullSecretProtector.Instance, CancellationToken.None);
+        var result = await new SftpImportModule().DiscoverJobsAsync(chain, moduleInstance, NullLogger.Instance, NullSecretProtector.Instance, new HashSet<string>(), CancellationToken.None);
 
         Assert.Empty(result);
     }
@@ -67,7 +67,7 @@ public class RemoteTransferModuleTests
             SettingsJson = "{}", // no Host configured
         };
 
-        var result = await new SftpImportModule().DiscoverJobsAsync(chain, moduleInstance, NullLogger.Instance, NullSecretProtector.Instance, CancellationToken.None);
+        var result = await new SftpImportModule().DiscoverJobsAsync(chain, moduleInstance, NullLogger.Instance, NullSecretProtector.Instance, new HashSet<string>(), CancellationToken.None);
 
         Assert.Empty(result);
     }
@@ -148,7 +148,7 @@ public class RemoteTransferModuleTests
             tokenProvider: null!,
             projectResolver: null!);
 
-        var result = await module.DiscoverJobsAsync(chain, moduleInstance, NullLogger.Instance, NullSecretProtector.Instance, CancellationToken.None);
+        var result = await module.DiscoverJobsAsync(chain, moduleInstance, NullLogger.Instance, NullSecretProtector.Instance, new HashSet<string>(), CancellationToken.None);
 
         Assert.Empty(result);
     }

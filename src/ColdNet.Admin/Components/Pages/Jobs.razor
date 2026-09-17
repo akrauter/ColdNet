@@ -63,13 +63,59 @@ else
                     <td>@DateTime.SpecifyKind(job.UpdatedAtUtc, DateTimeKind.Utc).ToLocalTime().ToString("g")</td>
                     <td class="text-danger small">@job.ErrorMessage</td>
                     <td>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => ToggleLogAsync(job.Id)">
+                            @(_expandedJobId == job.Id ? "Hide log" : "Log")
+                        </button>
                         @if (job.Status == JobStatus.Error)
                         {
-                            <button class="btn btn-sm btn-outline-success" @onclick="() => ResetJobAsync(job.Id)">Reset to Ready</button>
+                            <button class="btn btn-sm btn-outline-success ms-1" @onclick="() => ResetJobAsync(job.Id)">Reset to Ready</button>
                         }
                         <button class="btn btn-sm btn-outline-danger ms-1" @onclick="() => DeleteJobAsync(job.Id)">Delete</button>
                     </td>
                 </tr>
+                @if (_expandedJobId == job.Id)
+                {
+                    <tr>
+                        <td colspan="7">
+                            @if (_expandedJobLog is null)
+                            {
+                                <p class="text-muted mb-0"><em>Loading log...</em></p>
+                            }
+                            else if (_expandedJobLog.Count == 0)
+                            {
+                                <p class="text-muted mb-0">No log entries yet.</p>
+                            }
+                            else
+                            {
+                                <table class="table table-sm mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Timestamp</th>
+                                            <th>Module</th>
+                                            <th>Order</th>
+                                            <th>Result</th>
+                                            <th>Message</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var entry in _expandedJobLog)
+                                        {
+                                            <tr>
+                                                <td>@DateTime.SpecifyKind(entry.TimestampUtc, DateTimeKind.Utc).ToLocalTime().ToString("g")</td>
+                                                <td>@entry.ModuleTypeName</td>
+                                                <td>@entry.ModuleOrder</td>
+                                                <td>
+                                                    <span class="badge @(entry.Success ? "bg-success" : "bg-danger")">@(entry.Success ? "OK" : "Error")</span>
+                                                </td>
+                                                <td class="small">@entry.Message</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>
@@ -81,6 +127,8 @@ else
     private List<Job>? _jobs;
     private string _chainFilter = string.Empty;
     private string _statusFilter = string.Empty;
+    private Guid? _expandedJobId;
+    private List<JobLogEntry>? _expandedJobLog;
 
     protected override async Task OnInitializedAsync()
     {
@@ -106,6 +154,25 @@ else
         }
 
         _jobs = await query.OrderByDescending(j => j.UpdatedAtUtc).Take(200).ToListAsync();
+    }
+
+    private async Task ToggleLogAsync(Guid jobId)
+    {
+        if (_expandedJobId == jobId)
+        {
+            _expandedJobId = null;
+            _expandedJobLog = null;
+            return;
+        }
+
+        _expandedJobId = jobId;
+        _expandedJobLog = null;
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _expandedJobLog = await db.JobLogEntries
+            .Where(e => e.JobId == jobId)
+            .OrderBy(e => e.TimestampUtc)
+            .ToListAsync();
     }
 
     private async Task ResetJobAsync(Guid jobId)
@@ -135,7 +202,14 @@ else
         }
 
         db.Jobs.Remove(job);
+        await db.JobLogEntries.Where(e => e.JobId == jobId).ExecuteDeleteAsync();
         await db.SaveChangesAsync();
+
+        if (_expandedJobId == jobId)
+        {
+            _expandedJobId = null;
+            _expandedJobLog = null;
+        }
 
         await LoadAsync();
     }

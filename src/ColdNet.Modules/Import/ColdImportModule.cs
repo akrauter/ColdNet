@@ -35,6 +35,7 @@ public class ColdImportModule : IJobImportModule
         ModuleInstance moduleInstance,
         ILogger logger,
         ISecretProtector secretProtector,
+        ISet<string> existingFilePrefixes,
         CancellationToken cancellationToken)
     {
         var common = moduleInstance.CommonSettings;
@@ -97,6 +98,7 @@ public class ColdImportModule : IJobImportModule
             }
 
             var jobNumber = settings.GenerateUniqueJobId ? JobNumberGenerator.GenerateUniqueJobId() : prefix;
+            jobNumber = JobNumberGenerator.MakeUnique(jobNumber, existingFilePrefixes);
 
             foreach (var file in siblingFiles)
             {
