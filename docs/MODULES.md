@@ -121,4 +121,4 @@ no native dependencies, so these work on Linux/Docker the same as everywhere els
 | ColdNet module | Status |
 |---|---|
 | `SftpImport` | ✅ implemented - lists a remote directory and downloads new files as jobs, the remote counterpart of `ColdImport`. Since a remote server has no equivalent of the local "$"-prefix rename trick, already-downloaded files are renamed (default) or deleted remotely so they aren't re-imported. |
-| `SftpExport` | ✅ implemented - uploads a job's file(s) to a remote directory. |
+| `SftpExport` | ✅ implemented - uploads a job's file(s) to a remote directory. On upload failure, the error now includes the exception type and any inner exception, since some servers (e.g. **Hetzner Storage Box**, which only exposes `/home/` as writable - writing to `/` itself fails with a bare, unhelpful `SftpException: Failure`) reject a write with no further detail; if you hit that exact error, check `RemoteDirectory` against what the server actually allows before assuming it's a ColdNet bug. |

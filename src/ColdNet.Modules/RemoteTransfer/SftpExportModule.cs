@@ -96,7 +96,7 @@ public class SftpExportModule : IColdModule
             }
             catch (Exception ex)
             {
-                return ModuleExecutionResult.Fail($"Failed to upload {Path.GetFileName(file)} to {settings.Host}:{remotePath}: {ex.Message}");
+                return ModuleExecutionResult.Fail($"Failed to upload {Path.GetFileName(file)} via {settings.Host}:{connectionOptions.Port} to remote path {remotePath}: [{ex.GetType().Name}] {ex.Message}{(ex.InnerException is { } inner ? $" (inner: [{inner.GetType().Name}] {inner.Message})" : string.Empty)}");
             }
         }
 
