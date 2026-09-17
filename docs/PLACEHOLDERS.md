@@ -50,12 +50,39 @@ Used in `SetVariable`'s per-assignment `Value` setting.
 | `{Extension}` | Extension (without dot) of the module's resolved input file, e.g. `pdf`. |
 | `{Now}` / `{Now:format}` | Current local date/time. `format` is a [.NET custom date/time format string](https://learn.microsoft.com/dotnet/standard/base-types/custom-date-and-time-format-strings); `{Now}` alone is short for `{Now:yyyy-MM-dd}`. |
 
+## Rename Files pattern placeholders
+
+Used in `RenameFiles`'s `NewFileNamePattern` setting - only read when it's non-empty; leave it
+blank to keep the module's original single-file `FromExtension`/`ToExtension` behavior.
+
+| Placeholder | Resolves to |
+|---|---|
+| `{JobPrefix}` | The job's file prefix. |
+| `{DocumentType}` | The module's DMS support "Document type" field (empty string if not set). |
+| `{FileName}` | File name (with extension) of the file being renamed. |
+| `{FileNameWithoutExtension}` | File name without extension of the file being renamed. |
+| `{Extension}` | Extension (without dot) of the file being renamed, with any leading `"$"` import marker already stripped (e.g. `$pdf` -> `pdf`) - this is what lets a single `RenameFiles` step drop CNIMPORT's `"$"` marker across a chain that handles more than one source extension, which a fixed `FromExtension`/`ToExtension` pair can't do. |
+| `{Now}` / `{Now:format}` | Current local date/time, same as the Set Variable placeholder above. |
+| `{Counter}` | An ever-incrementing sequence number, persisted on the module instance (never reset per job) - padded to `CounterDigits` digits using `CounterFillChar` (e.g. `CounterDigits: 4`, `CounterFillChar: "0"` -> `0007`). |
+
+When set, every file matching `<job prefix>.*` in the module's input directory is discovered and
+renamed with this pattern - not just one file with a known extension.
+
 ## Worked examples
 
 **Hand a finished job's files over to EDMVault or SFTP** - `EdmVaultExport` and `SftpExport` both
 default `SourceFileMask` to `{prefix}.*`: every file sharing the job's prefix, regardless of
 extension. Leave it as-is to hand over everything the chain produced; narrow it (e.g.
 `{prefix}.pdf`) to hand over only one file type and leave the rest for a later step.
+
+**Drop the "$" marker before an SFTP/EDMVault export, whatever the source extension** - a chain
+whose `ColdImport` step accepts several file types (e.g. `FileMask: "*.*"`) can't strip CNIMPORT's
+`"$"` marker with a fixed `FromExtension`/`ToExtension` pair, since it would need one `RenameFiles`
+instance per possible extension. Set `NewFileNamePattern` to `{JobPrefix}.{Extension}` instead -
+`{Extension}` already excludes the `"$"`, so this works for every incoming extension in one step,
+right before an `SftpExport`/`EdmVaultExport` module that would otherwise upload/hand over a file
+still named e.g. `BEAXH1TS60QW.$pdf`. Add a running document number on top with
+`NewFileNamePattern: "{JobPrefix}_{Counter}.{Extension}"`, `CounterDigits: 6`.
 
 **Reassemble scanned pages into one multi-page TIFF** - `MultiPageTiff` expects several
 single-page files already named `<prefix>_<n>.tif` by an earlier step (a scanner, or a module like

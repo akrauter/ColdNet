@@ -33,4 +33,13 @@ public class ModuleInstance
     /// and reads it back via <c>ModuleExecutionContext.GetSettings&lt;T&gt;()</c>.
     /// </summary>
     public string SettingsJson { get; set; } = "{}";
+
+    /// <summary>
+    /// Running counter for placeholder-driven modules (e.g. RenameFiles's <c>{Counter}</c>) that
+    /// need a persistent, ever-incrementing sequence number across every job this instance
+    /// processes - never reset per job. Persisted here (not a separate state file) since it's
+    /// mutated on this same EF-tracked entity that the scheduler already saves after each job, so
+    /// it always lands in the same transaction as that job's own status update.
+    /// </summary>
+    public int Counter { get; set; }
 }

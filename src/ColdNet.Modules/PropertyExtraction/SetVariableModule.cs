@@ -39,14 +39,23 @@ public class SetVariableModule : IColdModule
         return ModuleExecutionResult.Ok();
     }
 
-    internal static string ResolvePlaceholders(string value, ModuleExecutionContext context)
+    internal static string ResolvePlaceholders(string value, ModuleExecutionContext context) =>
+        ResolvePlaceholders(value, context, context.GetInputPath());
+
+    /// <summary>
+    /// Same placeholder set as the no-path overload, but <c>{FileName}</c>/<c>{FileNameWithoutExtension}</c>/
+    /// <c>{Extension}</c> are derived from <paramref name="sourceFilePath"/> instead of always
+    /// <see cref="ModuleExecutionContext.GetInputPath"/> - needed by callers (e.g. RenameFiles)
+    /// that discover a job's actual file(s) on disk rather than relying on one fixed configured
+    /// extension.
+    /// </summary>
+    internal static string ResolvePlaceholders(string value, ModuleExecutionContext context, string sourceFilePath)
     {
-        var inputPath = context.GetInputPath();
         var result = value.Replace("{JobPrefix}", context.Job.FilePrefix);
         result = result.Replace("{DocumentType}", context.DmsSupport.DocumentType ?? string.Empty);
-        result = result.Replace("{FileName}", Path.GetFileName(inputPath));
-        result = result.Replace("{FileNameWithoutExtension}", Path.GetFileNameWithoutExtension(inputPath));
-        result = result.Replace("{Extension}", Path.GetExtension(inputPath).TrimStart('.'));
+        result = result.Replace("{FileName}", Path.GetFileName(sourceFilePath));
+        result = result.Replace("{FileNameWithoutExtension}", Path.GetFileNameWithoutExtension(sourceFilePath));
+        result = result.Replace("{Extension}", Path.GetExtension(sourceFilePath).TrimStart('.'));
 
         var now = DateTimeOffset.Now;
         result = System.Text.RegularExpressions.Regex.Replace(result, @"\{Now(?::([^}]+))?\}", m =>
