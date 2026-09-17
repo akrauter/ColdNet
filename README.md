@@ -19,7 +19,7 @@ ColdNet.slnx
 src/
   ColdNet.Core       Domain model + module SDK (IColdModule, ModuleExecutionContext, PropertyBag, ...) - no external deps
   ColdNet.Data       EF Core (SQLite by default, SQL Server supported) - jobs, chains, groups, module config
-  ColdNet.Modules    Built-in modules (Import, TextConversion, Xml, Tools, JobSeparation,
+  ColdNet.Modules    Built-in modules (Import, TextConversion, Xml, Csv, Tools, JobSeparation,
                      PropertyExtraction, GraphicsConversion, Compression, Case, FileHandling,
                      RemoteTransfer)
   ColdNet.EdmVault   EDMVault: file-drop connector, REST connector, export + import modules
