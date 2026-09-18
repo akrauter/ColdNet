@@ -72,6 +72,16 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
+      - name: Require module-signing secrets
+        env:
+          SIGNING_PFX_BASE64: ${{ secrets.MODULE_SIGNING_PFX_BASE64 }}
+          SIGNING_PFX_PASSWORD: ${{ secrets.MODULE_SIGNING_PFX_PASSWORD }}
+        run: |
+          if [ -z "$SIGNING_PFX_BASE64" ] || [ -z "$SIGNING_PFX_PASSWORD" ]; then
+            echo "::error::MODULE_SIGNING_PFX_BASE64 / MODULE_SIGNING_PFX_PASSWORD are not configured - the images would be unsigned and refuse to start. See docs/MODULE-SIGNING.md."
+            exit 1
+          fi
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -87,6 +97,9 @@ jobs:
           tags: |
             ${{ env.DOCKERHUB_ADMIN_IMAGE }}:latest
             ${{ env.DOCKERHUB_ADMIN_IMAGE }}:master-${{ needs.version.outputs.short_sha }}
+          secrets: |
+            module_signing_pfx_b64=${{ secrets.MODULE_SIGNING_PFX_BASE64 }}
+            module_signing_password=${{ secrets.MODULE_SIGNING_PFX_PASSWORD }}
           cache-from: type=gha,scope=admin
           cache-to: type=gha,mode=max,scope=admin
 
@@ -99,6 +112,9 @@ jobs:
           tags: |
             ${{ env.DOCKERHUB_WORKER_IMAGE }}:latest
             ${{ env.DOCKERHUB_WORKER_IMAGE }}:master-${{ needs.version.outputs.short_sha }}
+          secrets: |
+            module_signing_pfx_b64=${{ secrets.MODULE_SIGNING_PFX_BASE64 }}
+            module_signing_password=${{ secrets.MODULE_SIGNING_PFX_PASSWORD }}
           cache-from: type=gha,scope=worker
           cache-to: type=gha,mode=max,scope=worker
 
@@ -124,6 +140,26 @@ jobs:
 
       - name: Publish ColdNet.SecretTool (win-x64, self-contained)
         run: dotnet publish src/ColdNet.SecretTool/ColdNet.SecretTool.csproj --configuration Release --runtime win-x64 --self-contained true --output publish/SecretTool
+
+      - name: Sign module assemblies
+        shell: pwsh
+        env:
+          SIGNING_PFX_BASE64: ${{ secrets.MODULE_SIGNING_PFX_BASE64 }}
+          COLDNET_SIGNING_PFX_PASSWORD: ${{ secrets.MODULE_SIGNING_PFX_PASSWORD }}
+        run: |
+          if (-not $env:SIGNING_PFX_BASE64 -or -not $env:COLDNET_SIGNING_PFX_PASSWORD) {
+            throw "MODULE_SIGNING_PFX_BASE64 / MODULE_SIGNING_PFX_PASSWORD are not configured - the release would be unsigned and refuse to start. See docs/MODULE-SIGNING.md."
+          }
+          dotnet publish src/ColdNet.SignTool/ColdNet.SignTool.csproj --configuration Release --output signtool
+          $pfx = Join-Path $env:RUNNER_TEMP 'module-signing.pfx'
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:SIGNING_PFX_BASE64))
+          foreach ($app in 'Admin', 'Worker') {
+            dotnet signtool/ColdNet.SignTool.dll sign --pfx $pfx publish/$app/ColdNet.Modules.dll publish/$app/ColdNet.EdmVault.dll
+            if ($LASTEXITCODE -ne 0) { throw "signing $app failed" }
+            dotnet signtool/ColdNet.SignTool.dll export-cer --pfx $pfx --out publish/$app/module-signing.cer
+            if ($LASTEXITCODE -ne 0) { throw "exporting the public certificate for $app failed" }
+          }
+          Remove-Item $pfx
 
       - name: Assemble local-execution package
         shell: pwsh
@@ -170,6 +206,24 @@ jobs:
 
       - name: Publish ColdNet.SecretTool (linux-x64, self-contained)
         run: dotnet publish src/ColdNet.SecretTool/ColdNet.SecretTool.csproj --configuration Release --runtime linux-x64 --self-contained true --output publish/SecretTool
+
+      - name: Sign module assemblies
+        env:
+          SIGNING_PFX_BASE64: ${{ secrets.MODULE_SIGNING_PFX_BASE64 }}
+          COLDNET_SIGNING_PFX_PASSWORD: ${{ secrets.MODULE_SIGNING_PFX_PASSWORD }}
+        run: |
+          if [ -z "$SIGNING_PFX_BASE64" ] || [ -z "$COLDNET_SIGNING_PFX_PASSWORD" ]; then
+            echo "::error::MODULE_SIGNING_PFX_BASE64 / MODULE_SIGNING_PFX_PASSWORD are not configured - the release would be unsigned and refuse to start. See docs/MODULE-SIGNING.md."
+            exit 1
+          fi
+          dotnet publish src/ColdNet.SignTool/ColdNet.SignTool.csproj --configuration Release --output signtool
+          pfx="$RUNNER_TEMP/module-signing.pfx"
+          printf '%s' "$SIGNING_PFX_BASE64" | base64 -d > "$pfx"
+          for app in Admin Worker; do
+            dotnet signtool/ColdNet.SignTool.dll sign --pfx "$pfx" publish/$app/ColdNet.Modules.dll publish/$app/ColdNet.EdmVault.dll
+            dotnet signtool/ColdNet.SignTool.dll export-cer --pfx "$pfx" --out publish/$app/module-signing.cer
+          done
+          rm -f "$pfx"
 
       - name: Assemble local-execution package
         run: |

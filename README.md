@@ -27,6 +27,7 @@ src/
   ColdNet.Worker     Background service host - runs the scheduling loop
   ColdNet.Admin      Blazor Server admin UI - process groups/chains, modules, jobs
   ColdNet.SecretTool Command-line emergency tool to decrypt stored secrets (passwords, ...)
+  ColdNet.SignTool   Publisher-side tool: creates the module-signing certificate, signs/verifies module assemblies
 tests/
   ColdNet.Core.Tests
   ColdNet.Engine.Tests
@@ -34,6 +35,7 @@ docs/
   MODULES.md         Full ColdNet module catalogue, with each module's reference code
   PLACEHOLDERS.md    {prefix}/{input}/{Now:...} etc. reference + worked examples (also at /help)
   ENCRYPTION.md       How secrets are encrypted at rest + how to use ColdNet.SecretTool
+  MODULE-SIGNING.md  Module signature verification: trust model, CI setup, plugin signing, limits
 templates/            dotnet new item templates for scaffolding a new module (VS/Rider/CLI)
 deploy/local-release/ Files bundled into the release packages (Start-*.bat/start-*.sh, README*.txt)
 docker-compose.yml   Admin + Worker in Linux containers, see "Running it" below
@@ -65,6 +67,10 @@ builds both images locally:
 ```bash
 docker compose up -d
 ```
+Images built locally by `docker-compose.yml` are unsigned, so it sets `ColdNet__ModuleSigning__Enforce=false`
+for them (see [Module signing](#module-signing)); the Docker Hub images below are signed by CI and
+need no such override.
+
 Admin UI will be accessible at http://localhost:5202. Both containers include headless LibreOffice
 for Office-to-PDF conversion (`OfficeToPdf`), Ghostscript + a free sRGB ICC profile for PDF/A
 conversion (`PdfToPdfA` - point its `IccProfilePath` setting at `/usr/share/color/icc/sRGB.icc`),
@@ -87,7 +93,7 @@ Every push to `master` that passes CI publishes a new
 .NET install required) for both common platforms:
 
 - **`ColdNet-win-x64-<version>.zip`** - `Admin/`, `Worker/`, `SecretTool/`, `Start-Admin.bat`,
-  `Start-Worker.bat`. Unzip it, run `Start-Admin.bat`, open http://localhost:5202, then run
+  `Start-Worker.bat`. The modules are signed and `module-signing.cer` is bundled. Unzip it, run `Start-Admin.bat`, open http://localhost:5202, then run
   `Start-Worker.bat` to actually process chains in the background. See
   `deploy/local-release/README.txt` (bundled in the zip) for details.
 - **`ColdNet-linux-x64-<version>.tar.gz`** - same layout, `start-admin.sh`/`start-worker.sh`
@@ -141,6 +147,10 @@ position 0) into `ColdNet.Modules` (or your own plugin assembly), decorate it wi
 no registry edits needed. See any existing module (e.g. `ColdNet.Modules/TextConversion/TextReplaceModule.cs`)
 for the pattern, and `docs/MODULES.md` for the full catalogue.
 
+Because a module runs inside the Admin/Worker process with its full rights, the host only runs
+module assemblies that carry a valid detached signature from a certificate it trusts - the built-in
+modules and anything dropped into `plugins/` alike (see [Module signing](#module-signing)).
+
 `templates/` has `dotnet new` item templates (`coldnet-module` / `coldnet-import-module`) that
 scaffold a new module's starting file for you - install once with `dotnet new install ./templates`
 and they show up both on the command line and inside Visual Studio's/Rider's "Add New Item" /
@@ -182,6 +192,17 @@ regardless of which connector is configured as the default. Both use the module'
 
 Don't commit real credentials into `appsettings.json` - use `dotnet user-secrets` or environment
 variables (`ColdNet__EdmVault__RestApi__Password`) for anything beyond local development.
+
+## Module signing
+
+Every module assembly - built-in and plugin - must carry a detached signature (`<name>.dll.sig`)
+made with the publisher's **private** key; the application holds only the matching **public**
+certificate (`module-signing.cer`) and refuses to start if any module fails verification. Release
+packages and the Docker Hub images are signed by CI (fail-closed: the pipeline needs the
+`MODULE_SIGNING_PFX_BASE64`/`MODULE_SIGNING_PFX_PASSWORD` secrets). Local `dotnet run` (Development
+environment) and locally built Docker images opt out via `ColdNet:ModuleSigning:Enforce = false`,
+with a loud warning on every start. Setup, plugin signing, key rotation and the honest limits of
+the scheme: [`docs/MODULE-SIGNING.md`](docs/MODULE-SIGNING.md).
 
 ## Secrets at rest
 

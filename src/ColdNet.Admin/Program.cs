@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using ColdNet.Admin.Components;
 using ColdNet.Core.ExportImport;
@@ -11,6 +12,27 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Must run before anything touches a module assembly (AddEdmVault below already does): verifies the
+// built-in modules' signatures on disk first and loads only signed plugin assemblies.
+Assembly[] pluginAssemblies;
+using (var startupLogFactory = LoggerFactory.Create(b => b.AddSimpleConsole()))
+{
+    var startupLogger = startupLogFactory.CreateLogger("ColdNet.ModuleSigning");
+    try
+    {
+        pluginAssemblies = ModuleTrust.VerifyAndLoad(
+            builder.Configuration.GetSection("ColdNet:ModuleSigning").Get<ModuleSigningOptions>() ?? new ModuleSigningOptions(),
+            startupLogger,
+            AppContext.BaseDirectory,
+            ModuleTrust.BuiltInAssemblyFileNames).ToArray();
+    }
+    catch (ModuleSignatureException ex)
+    {
+        startupLogger.LogCritical("{Message}", ex.Message);
+        return 1;
+    }
+}
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -18,8 +40,7 @@ builder.Services.AddColdNetDataAccess(builder.Configuration);
 builder.Services.AddColdNetSecretProtection(builder.Configuration);
 builder.Services.AddEdmVault(builder.Configuration);
 builder.Services.AddColdNetEngine(
-    typeof(ColdNet.Modules.Import.ColdImportModule).Assembly,
-    typeof(EdmVaultExportModule).Assembly);
+    [typeof(ColdNet.Modules.Import.ColdImportModule).Assembly, typeof(EdmVaultExportModule).Assembly, .. pluginAssemblies]);
 builder.Services.Configure<ChainSchedulerOptions>(builder.Configuration.GetSection("ColdNet:Worker"));
 
 var app = builder.Build();
@@ -97,6 +118,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+return 0;
 
 // Exported chain/group JSON is a file on disk that might get shared, committed, or attached to a
 // ticket - blank out passwords/passphrases rather than either leaking plaintext or exporting

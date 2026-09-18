@@ -1,9 +1,14 @@
-﻿services:
+services:
   coldnet-admin:
     build:
       context: .
       dockerfile: src/ColdNet.Admin/Dockerfile
     container_name: coldnet-admin
+    # A locally built image is unsigned (CI signs the Docker Hub images with a key that never leaves
+    # the pipeline), so module signature enforcement must be opted out of here - see
+    # docs/MODULE-SIGNING.md. Delete these lines when running a signed image pulled from Docker Hub.
+    environment:
+      - ColdNet__ModuleSigning__Enforce=false
     ports:
       - "5202:8080"
     volumes:
@@ -17,6 +22,7 @@
     container_name: coldnet-worker
     environment:
       - ColdNet__Worker__WorkerName=default
+      - ColdNet__ModuleSigning__Enforce=false # locally built image is unsigned, see the Admin service
     volumes:
       - coldnet-data:/app/data
     restart: unless-stopped

@@ -46,6 +46,14 @@ Hinweis zu externen Abhaengigkeiten einzelner Module:
   MultiPageTiff, BarcodeSplit) sind in diesem self-contained Paket bereits
   enthalten und benoetigen keine weitere Installation.
 
+Modul-Signatur: Alle Module (ColdNet.Modules.dll, ColdNet.EdmVault.dll und alles im
+Ordner "plugins") muessen eine gueltige Signatur (<name>.dll.sig) tragen. Der Herausgeber
+signiert mit seinem privaten Schluessel; die Anwendung kennt nur das oeffentliche Zertifikat
+(module-signing.cer, liegt in Admin und Worker bei) und startet bei einer fehlenden oder
+ungueltigen Signatur nicht. Dieses Paket ist bereits signiert. Eigene Plugin-Module (DLL plus
+.sig) kommen in den Ordner "plugins" neben der Anwendung - Details in docs/MODULE-SIGNING.md
+des Projekts (Signieren mit ColdNet.SignTool, Schluesselwechsel, Grenzen des Verfahrens).
+
 Kennwoerter (z.B. bei SFTP-Modulen) werden in der Datenbank ausschliesslich
 verschluesselt gespeichert und im Admin nur maskiert angezeigt. Falls ein
 Kennwort im Notfall trotzdem im Klartext gebraucht wird (z.B. ohne Zugriff

@@ -45,6 +45,11 @@ itself has a `TODO` comment reminding you to fix the namespace to match. No othe
 step is needed: `ModuleRegistry` discovers any `[ModuleDefinition(...)]`-decorated class in the
 loaded module assemblies automatically, and it appears in the admin UI's "Add module" picker.
 
+A module in a **plugin assembly** (a separate project whose DLL you drop into the host's `plugins/`
+folder, rather than a class added to `ColdNet.Modules`) is only loaded if that DLL - and any other
+DLL the plugin brings along - has been signed with the publisher's key
+(`ColdNet.SignTool sign ...`). See [`docs/MODULE-SIGNING.md`](../docs/MODULE-SIGNING.md).
+
 ### Visual Studio
 
 After installing, right-click a project (or folder) in Solution Explorer → **Add** → **New Item...**
