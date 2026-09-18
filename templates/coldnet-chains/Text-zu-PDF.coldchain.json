@@ -1,0 +1,85 @@
+{
+  "$schema": "coldnet-chain-v1",
+  "name": "Text-zu-PDF",
+  "description": "Konvertiert Textdateien (.txt) in PDF und legt Quelldatei und PDF im Ausgabeverzeichnis ab.",
+  "enabled": true,
+  "isRunning": false,
+  "workerName": "default",
+  "jobsPerStep": 10,
+  "modules": [
+    {
+      "order": 0,
+      "moduleTypeName": "ColdImport",
+      "displayName": "1. Textdateien importieren",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "data/input/text",
+        "fileExtension": "",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {"FileMask":"*.txt","GenerateUniqueJobId":false,"SearchSubdirectories":false,"IgnoreZeroByteFiles":true}
+    },
+    {
+      "order": 1,
+      "moduleTypeName": "RenameFiles",
+      "displayName": "2. Import-Marker entfernen ($txt -\u003E txt)",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "",
+        "fileExtension": "",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {"FromExtension":"$txt","ToExtension":"txt"}
+    },
+    {
+      "order": 2,
+      "moduleTypeName": "TextToPdf",
+      "displayName": "3. Text zu PDF konvertieren",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "",
+        "fileExtension": "txt",
+        "outputFileExtension": "pdf",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {"FontFamily":"Courier","FontSize":10,"Landscape":false,"MarginPoints":36}
+    },
+    {
+      "order": 3,
+      "moduleTypeName": "FileMover",
+      "displayName": "4. Quelldokument \u0026 PDF in Ausgabe verschieben",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "",
+        "outputDirectory": "data/output/text",
+        "fileExtension": "",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {"IncludeSubdirectories":false,"OverwriteExisting":true}
+    }
+  ]
+}

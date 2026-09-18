@@ -1,0 +1,76 @@
+{
+  "$schema": "coldnet-chain-v1",
+  "name": "Transfer to SFTP",
+  "enabled": true,
+  "isRunning": false,
+  "workerName": "default",
+  "jobsPerStep": 10,
+  "modules": [
+    {
+      "order": 0,
+      "moduleTypeName": "ColdImport",
+      "displayName": "Import",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "d:\\_Work\\_sftp",
+        "fileExtension": "",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {
+  "FileMask": "*.*",
+  "GenerateUniqueJobId": false,
+  "SearchSubdirectories": false,
+  "IgnoreZeroByteFiles": true
+}
+    },
+    {
+      "order": 1,
+      "moduleTypeName": "RenameFiles",
+      "displayName": "Rename Files",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "",
+        "fileExtension": "",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {
+  "FromExtension": "",
+  "ToExtension": "{Extension}",
+  "NewFileNamePattern": "",
+  "CounterDigits": 1,
+  "CounterFillChar": "0"
+}
+    },
+    {
+      "order": 2,
+      "moduleTypeName": "SftpExport",
+      "displayName": "SFTP/FTPS Export",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "",
+        "fileExtension": "${extension}",
+        "outputFileExtension": "{extension}",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {"Protocol":0,"Host":"u607199.your-storagebox.de","Port":23,"UserName":"u607199","Password":"","PrivateKeyPath":"","PrivateKeyPassphrase":"","ConnectTimeoutSeconds":30,"FtpsAcceptAnyCertificate":false,"RemoteDirectory":"/home/","SourceFileMask":"{prefix}.*","CreateRemoteDirectoryIfMissing":true,"OverwriteExisting":true}
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+{
+  "$schema": "coldnet-chain-v1",
+  "name": "Extract Values by Key",
+  "enabled": true,
+  "isRunning": false,
+  "workerName": "default",
+  "jobsPerStep": 10,
+  "modules": [
+    {
+      "order": 0,
+      "moduleTypeName": "ColdImport",
+      "displayName": "Import",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "data/input/csvtest",
+        "fileExtension": "",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {}
+    },
+    {
+      "order": 1,
+      "moduleTypeName": "RenameFiles",
+      "displayName": "Rename Files",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "",
+        "fileExtension": "",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {
+  "FromExtension": "$txt",
+  "ToExtension": "txt",
+  "NewFileNamePattern": "",
+  "CounterDigits": 1,
+  "CounterFillChar": "0"
+}
+    },
+    {
+      "order": 2,
+      "moduleTypeName": "TextToPdf",
+      "displayName": "Text to PDF",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "",
+        "fileExtension": "txt",
+        "outputFileExtension": "pdf",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {
+  "FontSizePt": 10,
+  "PageMarginMm": 15,
+  "LinesPerPage": 60
+}
+    },
+    {
+      "order": 3,
+      "moduleTypeName": "ExtractText",
+      "displayName": "Extract Text",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "",
+        "fileExtension": "pdf",
+        "outputFileExtension": "txt",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {
+  "TesseractPath": "tesseract",
+  "OcrLanguage": "deu",
+  "MinPdfTextLength": 3,
+  "TimeoutSeconds": 120
+}
+    },
+    {
+      "order": 4,
+      "moduleTypeName": "ParseProperties",
+      "displayName": "Parse Properties",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "",
+        "fileExtension": "txt",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {"Rules":[{"PropertyName":"InvoiceNumber","Pattern":"Invoice Number:\\s*(\\S+)","GroupIndex":1},{"PropertyName":"Customer","Pattern":"Customer:\\s*(.+)","GroupIndex":1}]}
+    },
+    {
+      "order": 5,
+      "moduleTypeName": "PropertiesToCsv",
+      "displayName": "Properties to CSV",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "",
+        "fileExtension": "",
+        "outputFileExtension": "csv",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {
+  "NameColumnHeader": "Name",
+  "ValueColumnHeader": "Value",
+  "Delimiter": ";",
+  "IncludeHeader": true,
+  "IncludeDocumentType": true
+}
+    }
+  ]
+}
