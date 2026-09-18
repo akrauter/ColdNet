@@ -119,6 +119,14 @@ third party can hand you a DLL, but it runs only after you have reviewed and sig
   directory - avoid them.
 - Scaffold a complete plugin project with `dotnet new coldnet-plugin` (see [`templates/`](../templates/README.md)).
 
+## SecretTool
+
+`ColdNet.SecretTool` prints decrypted passwords, so it applies the same gate: before `list-modules` or
+`decrypt-module` it verifies `ColdNet.Modules.dll`/`ColdNet.EdmVault.dll` (and loads signed plugins)
+against `module-signing.cer` in its own folder, and refuses otherwise. The release package ships it
+signed. `generate-key`, `encrypt` and `decrypt` never load module code and work without signatures.
+To run it from a developer build set `ColdNet__ModuleSigning__Enforce=false`.
+
 ## Configuration
 
 `ColdNet:ModuleSigning` in `appsettings*.json` / environment variables (`ColdNet__ModuleSigning__...`):

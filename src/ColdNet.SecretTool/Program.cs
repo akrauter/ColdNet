@@ -1,9 +1,12 @@
+using System.Data.Common;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using ColdNet.Core.Security;
 using ColdNet.Data;
 using ColdNet.Engine.Modules;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 // ColdNet.SecretTool - Notfall-Werkzeug fuer Administratoren.
 //
@@ -76,6 +79,14 @@ catch (UsageException ex)
     Console.Error.WriteLine(ex.Message);
     return 1;
 }
+catch (DbException ex)
+{
+    Console.Error.WriteLine(
+        $"Die Datenbank konnte nicht gelesen werden: {ex.Message}{Environment.NewLine}" +
+        $"Verbindung: '{configuration.GetConnectionString("ColdNet")}' (relativ zum Arbeitsverzeichnis). " +
+        "Stimmt 'ConnectionStrings:ColdNet', und wurde die Datenbank schon von Admin oder Worker angelegt?");
+    return 1;
+}
 
 static void RequireArgs(string[] args, int minLength, string usage)
 {
@@ -105,15 +116,37 @@ static ISecretProtector CreateProtector(IConfiguration configuration)
     }
 }
 
-static ModuleRegistry CreateModuleRegistry()
+static ModuleRegistry CreateModuleRegistry(IConfiguration configuration)
 {
-    Assembly[] assemblies =
-    [
-        typeof(ColdNet.Modules.Import.ColdImportModule).Assembly,
-        typeof(ColdNet.EdmVault.EdmVaultExportModule).Assembly,
-    ];
-    return new ModuleRegistry(assemblies);
+    // Same gate as Admin/Worker: this tool prints decrypted passwords, so it must not run module
+    // code that isn't signed by the trusted publisher. Verify BEFORE the module assemblies are touched.
+    IReadOnlyList<Assembly> pluginAssemblies;
+    try
+    {
+        pluginAssemblies = ModuleTrust.VerifyAndLoad(
+            configuration.GetSection("ColdNet:ModuleSigning").Get<ModuleSigningOptions>() ?? new ModuleSigningOptions(),
+            new StderrLogger(),
+            AppContext.BaseDirectory,
+            ModuleTrust.BuiltInAssemblyFileNames);
+    }
+    catch (ModuleSignatureException ex)
+    {
+        throw new UsageException(
+            ex.Message + Environment.NewLine +
+            "Das SecretTool gibt entschluesselte Kennwoerter aus und laedt deshalb nur signierte Module. " +
+            "Nur auf einem Entwicklungsrechner: ColdNet__ModuleSigning__Enforce=false setzen.");
+    }
+
+    return new ModuleRegistry([.. BuiltInModuleAssemblies(), .. pluginAssemblies]);
 }
+
+// Separate method so the module assemblies are only resolved after the verification above.
+[MethodImpl(MethodImplOptions.NoInlining)]
+static Assembly[] BuiltInModuleAssemblies() =>
+[
+    typeof(ColdNet.Modules.Import.ColdImportModule).Assembly,
+    typeof(ColdNet.EdmVault.EdmVaultExportModule).Assembly,
+];
 
 static ColdNetDbContext CreateDbContext(IConfiguration configuration)
 {
@@ -135,7 +168,7 @@ static ColdNetDbContext CreateDbContext(IConfiguration configuration)
 
 static async Task ListModulesAsync(IConfiguration configuration)
 {
-    var registry = CreateModuleRegistry();
+    var registry = CreateModuleRegistry(configuration);
     await using var db = CreateDbContext(configuration);
 
     var chainNames = await db.ProcessChains.ToDictionaryAsync(c => c.Id, c => c.Name);
@@ -166,7 +199,7 @@ static async Task ListModulesAsync(IConfiguration configuration)
 
 static async Task<int> DecryptModuleAsync(IConfiguration configuration, Guid moduleInstanceId)
 {
-    var registry = CreateModuleRegistry();
+    var registry = CreateModuleRegistry(configuration);
     var protector = CreateProtector(configuration);
     await using var db = CreateDbContext(configuration);
 
@@ -228,3 +261,19 @@ static void PrintUsage()
 }
 
 sealed class UsageException(string message) : Exception(message);
+
+/// <summary>Minimal stderr logger for the signature gate's warnings (avoids pulling in a console logging package).</summary>
+sealed class StderrLogger : ILogger
+{
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+    public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Warning;
+
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    {
+        if (IsEnabled(logLevel))
+        {
+            Console.Error.WriteLine($"[{logLevel}] {formatter(state, exception)}");
+        }
+    }
+}

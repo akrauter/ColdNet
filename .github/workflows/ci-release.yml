@@ -153,7 +153,7 @@ jobs:
           dotnet publish src/ColdNet.SignTool/ColdNet.SignTool.csproj --configuration Release --output signtool
           $pfx = Join-Path $env:RUNNER_TEMP 'module-signing.pfx'
           [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:SIGNING_PFX_BASE64))
-          foreach ($app in 'Admin', 'Worker') {
+          foreach ($app in 'Admin', 'Worker', 'SecretTool') {
             dotnet signtool/ColdNet.SignTool.dll sign --pfx $pfx publish/$app/ColdNet.Modules.dll publish/$app/ColdNet.EdmVault.dll
             if ($LASTEXITCODE -ne 0) { throw "signing $app failed" }
             dotnet signtool/ColdNet.SignTool.dll export-cer --pfx $pfx --out publish/$app/module-signing.cer
@@ -219,7 +219,7 @@ jobs:
           dotnet publish src/ColdNet.SignTool/ColdNet.SignTool.csproj --configuration Release --output signtool
           pfx="$RUNNER_TEMP/module-signing.pfx"
           printf '%s' "$SIGNING_PFX_BASE64" | base64 -d > "$pfx"
-          for app in Admin Worker; do
+          for app in Admin Worker SecretTool; do
             dotnet signtool/ColdNet.SignTool.dll sign --pfx "$pfx" publish/$app/ColdNet.Modules.dll publish/$app/ColdNet.EdmVault.dll
             dotnet signtool/ColdNet.SignTool.dll export-cer --pfx "$pfx" --out publish/$app/module-signing.cer
           done
