@@ -1,0 +1,89 @@
+{
+  "$schema": "coldnet-chain-v1",
+  "name": "Office-zu-PDF",
+  "description": "Konvertiert Office-Dokumente (.docx) in PDF via LibreOffice und legt Quelldokument und PDF im Ausgabeverzeichnis ab.",
+  "enabled": true,
+  "isRunning": false,
+  "workerName": "default",
+  "jobsPerStep": 10,
+  "modules": [
+    {
+      "order": 0,
+      "moduleTypeName": "ColdImport",
+      "displayName": "1. Office-Dokumente importieren",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "c:\\AnKr\\_Work\\_in",
+        "outputDirectory": "c:\\AnKr\\_Work\\_out",
+        "fileExtension": "",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {"FileMask":"*.docx","GenerateUniqueJobId":false,"SearchSubdirectories":false,"IgnoreZeroByteFiles":true}
+    },
+    {
+      "order": 1,
+      "moduleTypeName": "RenameFiles",
+      "displayName": "2. Import-Marker entfernen ($docx -\u003E docx)",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "",
+        "fileExtension": "",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {"FromExtension":"$docx","ToExtension":"docx"}
+    },
+    {
+      "order": 2,
+      "moduleTypeName": "OfficeToPdf",
+      "displayName": "3. Office zu PDF konvertieren",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "",
+        "fileExtension": "docx",
+        "outputFileExtension": "pdf",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {
+  "LibreOfficePath": "c:\\AnKr\\Apps\\LibreOfficePortable\\App\\libreoffice\\program\\soffice.exe",
+  "TimeoutSeconds": 120
+}
+    },
+    {
+      "order": 3,
+      "moduleTypeName": "FileMover",
+      "displayName": "4. Quelldokument \u0026 PDF in Ausgabe verschieben",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "",
+        "outputDirectory": "c:/AnKr/_Work/_out",
+        "fileExtension": "",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {"IncludeSubdirectories":false,"OverwriteExisting":true}
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "$schema": "coldnet-chain-v1",
+  "name": "UnzipFiles",
+  "enabled": true,
+  "isRunning": false,
+  "workerName": "default",
+  "jobsPerStep": 10,
+  "modules": [
+    {
+      "order": 0,
+      "moduleTypeName": "ColdImport",
+      "displayName": "Import",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "c:\\AnKr\\_Work\\_in",
+        "fileExtension": "",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {
+  "FileMask": "*.zip",
+  "GenerateUniqueJobId": false,
+  "SearchSubdirectories": false,
+  "IgnoreZeroByteFiles": true
+}
+    },
+    {
+      "order": 1,
+      "moduleTypeName": "RenameFiles",
+      "displayName": "Rename Files",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "",
+        "fileExtension": "",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {
+  "FromExtension": "",
+  "ToExtension": ""
+}
+    },
+    {
+      "order": 2,
+      "moduleTypeName": "UnpackArchive",
+      "displayName": "Unpack Archive",
+      "enabled": true,
+      "commonSettings": {
+        "directory": "",
+        "outputDirectory": "c:\\AnKr\\_Work\\_out\\Unzip",
+        "fileExtension": "",
+        "save": false,
+        "deleteSourceFile": false,
+        "maskForDms": false,
+        "append": false
+      },
+      "dmsSupport": {
+        "enabled": false
+      },
+      "settingsJson": {
+  "OverwriteExisting": true
+}
+    }
+  ]
+}
