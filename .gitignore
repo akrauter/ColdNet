@@ -21,3 +21,7 @@ src/ColdNet.Data/*.db
 
 ## Secrets - never commit real EDMVault credentials
 **/secrets.json
+
+# Private signing keys must never be committed (see docs/MODULE-SIGNING.md)
+*.pfx
+*.p12

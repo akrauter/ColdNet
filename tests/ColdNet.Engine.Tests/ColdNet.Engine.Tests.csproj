@@ -26,6 +26,7 @@
     <ProjectReference Include="..\..\src\ColdNet.Data\ColdNet.Data.csproj" />
     <ProjectReference Include="..\..\src\ColdNet.Modules\ColdNet.Modules.csproj" />
     <ProjectReference Include="..\..\src\ColdNet.EdmVault\ColdNet.EdmVault.csproj" />
+    <ProjectReference Include="..\ColdNet.TestPlugin\ColdNet.TestPlugin.csproj" />
   </ItemGroup>
 
 </Project>

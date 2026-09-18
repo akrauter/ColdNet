@@ -16,6 +16,25 @@ COPY src/ src/
 WORKDIR "/src/src/ColdNet.Worker"
 RUN dotnet publish "ColdNet.Worker.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
+# Module signing (docs/MODULE-SIGNING.md): the host refuses to start unless ColdNet.Modules.dll and
+# ColdNet.EdmVault.dll carry a valid detached signature, so CI passes the signing key as BuildKit
+# secrets (mounted only for this one RUN - never written to an image layer) and the public
+# certificate ships next to the app as module-signing.cer. Without the secrets the image is built
+# UNSIGNED and will not start unless ColdNet__ModuleSigning__Enforce=false (docker-compose.yml does
+# that for local builds).
+RUN --mount=type=secret,id=module_signing_pfx_b64 \
+    --mount=type=secret,id=module_signing_password \
+    if [ -s /run/secrets/module_signing_pfx_b64 ]; then \
+        dotnet publish /src/src/ColdNet.SignTool/ColdNet.SignTool.csproj -c Release -o /tools \
+        && base64 -d /run/secrets/module_signing_pfx_b64 > /tmp/module-signing.pfx \
+        && export COLDNET_SIGNING_PFX_PASSWORD="$(cat /run/secrets/module_signing_password)" \
+        && dotnet /tools/ColdNet.SignTool.dll sign --pfx /tmp/module-signing.pfx /app/publish/ColdNet.Modules.dll /app/publish/ColdNet.EdmVault.dll \
+        && dotnet /tools/ColdNet.SignTool.dll export-cer --pfx /tmp/module-signing.pfx --out /app/publish/module-signing.cer \
+        && rm -f /tmp/module-signing.pfx; \
+    else \
+        echo "WARNING: no module-signing secret - this image is UNSIGNED and will refuse to start unless ColdNet__ModuleSigning__Enforce=false"; \
+    fi
+
 # Runtime stage (includes LibreOffice for Office-to-PDF, Ghostscript for PDF-to-PDF/A)
 FROM mcr.microsoft.com/dotnet/runtime:10.0 AS final
 WORKDIR /app
