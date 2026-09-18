@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "ColdNet",
+  "classifications": [ "ColdNet", "Module", "Plugin" ],
+  "identity": "ColdNet.Plugin",
+  "name": "ColdNet Plugin Module",
+  "shortName": "coldnet-plugin",
+  "sourceName": "PluginTemplate",
+  "preferNameDirectory": true,
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "symbols": {
+    "ModuleId": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "MyPluginModule",
+      "replaces": "MODULE_ID",
+      "description": "The module's unique type name (an identifier, no dots) - what a chain stores to refer to it, so never change it once chains use it."
+    },
+    "ColdNetCorePath": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "../ColdNet/src/ColdNet.Core/ColdNet.Core.csproj",
+      "replaces": "COLDNET_CORE_PATH",
+      "description": "Path (relative to the new project) to ColdNet.Core.csproj in your ColdNet checkout. The plugin compiles against it but does not copy it."
+    },
+    "Category": {
+      "type": "parameter",
+      "datatype": "choice",
+      "choices": [
+        { "choice": "TextConversion" },
+        { "choice": "Xml" },
+        { "choice": "Tools" },
+        { "choice": "JobSeparation" },
+        { "choice": "PropertyExtraction" },
+        { "choice": "Hosts" },
+        { "choice": "Erp" },
+        { "choice": "GraphicsConversion" },
+        { "choice": "Compression" },
+        { "choice": "Case" },
+        { "choice": "FileHandling" },
+        { "choice": "DmsExport" },
+        { "choice": "RemoteTransfer" }
+      ],
+      "defaultValue": "Tools",
+      "replaces": "MODULE_CATEGORY",
+      "description": "The module's category (ColdNet.Core.Modules.ModuleCategory) - which group it's listed under in the admin UI's 'Add module' picker."
+    },
+    "DisplayName": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "My Module",
+      "replaces": "MODULE_DISPLAY_NAME",
+      "description": "Human-readable name shown in the admin UI, e.g. \"Text Replace\"."
+    },
+    "ModuleDescription": {
+      "type": "parameter",
+      "datatype": "text",
+      "defaultValue": "Describe what this module does.",
+      "replaces": "MODULE_DESCRIPTION",
+      "description": "One-sentence description shown next to the module in the admin UI's module picker."
+    }
+  },
+  "primaryOutputs": [ { "path": "PluginTemplate.csproj" } ]
+}

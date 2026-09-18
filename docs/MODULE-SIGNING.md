@@ -117,7 +117,7 @@ third party can hand you a DLL, but it runs only after you have reviewed and sig
   resolves from the host. Don't ship copies of host assemblies (rejected, see above).
 - Native libraries next to a plugin aren't covered by signing and aren't loaded from the plugin
   directory - avoid them.
-- Scaffold a new plugin module with the `dotnet new` templates in [`templates/`](../templates/README.md).
+- Scaffold a complete plugin project with `dotnet new coldnet-plugin` (see [`templates/`](../templates/README.md)).
 
 ## Configuration
 
