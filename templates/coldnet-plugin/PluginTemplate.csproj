@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- The host refuses a plugin that ships a copy of an assembly it already runs (ColdNet.Core,
+         Microsoft.Extensions.*, ...), so the build output must not contain them. If your plugin
+         needs its own NuGet package, set this to true, then delete from bin/ every DLL the host
+         already has before signing and copying - see docs/MODULE-SIGNING.md. -->
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Private=false: compile against ColdNet.Core but do not copy it next to the plugin. -->
+    <ProjectReference Include="COLDNET_CORE_PATH">
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+
+</Project>

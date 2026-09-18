@@ -36,7 +36,7 @@ docs/
   PLACEHOLDERS.md    {prefix}/{input}/{Now:...} etc. reference + worked examples (also at /help)
   ENCRYPTION.md       How secrets are encrypted at rest + how to use ColdNet.SecretTool
   MODULE-SIGNING.md  Module signature verification: trust model, CI setup, plugin signing, limits
-templates/            dotnet new item templates for scaffolding a new module (VS/Rider/CLI)
+templates/            dotnet new templates: module item templates + plugin project (VS/Rider/CLI)
 deploy/local-release/ Files bundled into the release packages (Start-*.bat/start-*.sh, README*.txt)
 docker-compose.yml   Admin + Worker in Linux containers, see "Running it" below
 src/ColdNet.Admin/Dockerfile, src/ColdNet.Worker/Dockerfile  Built by docker-compose.yml and CI
@@ -151,7 +151,7 @@ Because a module runs inside the Admin/Worker process with its full rights, the 
 module assemblies that carry a valid detached signature from a certificate it trusts - the built-in
 modules and anything dropped into `plugins/` alike (see [Module signing](#module-signing)).
 
-`templates/` has `dotnet new` item templates (`coldnet-module` / `coldnet-import-module`) that
+`templates/` has `dotnet new` templates (`coldnet-module` / `coldnet-import-module` items, `coldnet-plugin` project for external signed plugins) that
 scaffold a new module's starting file for you - install once with `dotnet new install ./templates`
 and they show up both on the command line and inside Visual Studio's/Rider's "Add New Item" /
 "New from Template" dialogs. See `templates/README.md`.
