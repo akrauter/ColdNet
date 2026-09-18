@@ -59,7 +59,7 @@ public class ModuleSigningTests
         using var trusted = PublicPart(signer);
         var signature = ModuleSigning.Sign("ColdNet.Modules.dll", ModuleBytes, signer);
 
-        var result = ModuleSigning.Verify(@"C:\app\COLDNET.MODULES.DLL", ModuleBytes, signature, trusted);
+        var result = ModuleSigning.Verify(Path.Combine("app", "sub", "COLDNET.MODULES.DLL"), ModuleBytes, signature, trusted);
 
         Assert.True(result.IsValid, result.Error);
     }
