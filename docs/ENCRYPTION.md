@@ -84,6 +84,9 @@ It reads the same `ColdNet:Encryption:Key` and `ConnectionStrings:ColdNet` /
 `ColdNet:Database:Provider` configuration as Admin/Worker from its own `appsettings.json` - point
 it at the same key and the same database to use it against a real instance.
 
+The module-based commands (`list-modules`, `decrypt-module`) only run if the tool's module DLLs are
+signed by the trusted publisher, like Admin and Worker - see [MODULE-SIGNING.md](MODULE-SIGNING.md#secrettool).
+
 ```bash
 # Generate a new random key (for initial setup or key rotation)
 ColdNet.SecretTool.exe generate-key

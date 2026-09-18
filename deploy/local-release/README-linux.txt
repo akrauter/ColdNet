@@ -56,6 +56,7 @@ signiert mit seinem privaten Schluessel; die Anwendung kennt nur das oeffentlich
 ungueltigen Signatur nicht. Dieses Paket ist bereits signiert. Eigene Plugin-Module (DLL plus
 .sig) kommen in den Ordner "plugins" neben der Anwendung - Details in docs/MODULE-SIGNING.md
 des Projekts (Signieren mit ColdNet.SignTool, Schluesselwechsel, Grenzen des Verfahrens).
+Das SecretTool prueft dieselbe Signatur, bevor es list-modules/decrypt-module ausfuehrt.
 
 Kennwoerter (z.B. bei SFTP-Modulen) werden in der Datenbank ausschliesslich
 verschluesselt gespeichert und im Admin nur maskiert angezeigt. Falls ein
