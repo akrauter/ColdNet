@@ -1,6 +1,13 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/ColdNet.Admin/ColdNet.Admin.csproj" />
+    <Project Path="src/ColdNet.Core/ColdNet.Core.csproj" />
+    <Project Path="src/ColdNet.Data/ColdNet.Data.csproj" />
+    <Project Path="src/ColdNet.EdmVault/ColdNet.EdmVault.csproj" />
+    <Project Path="src/ColdNet.Engine/ColdNet.Engine.csproj" />
+    <Project Path="src/ColdNet.Modules/ColdNet.Modules.csproj" />
     <Project Path="src/ColdNet.SecretTool/ColdNet.SecretTool.csproj" />
+    <Project Path="src/ColdNet.Worker/ColdNet.Worker.csproj" />
     <Project Path="src/ColdNet.SignTool/ColdNet.SignTool.csproj" />
   </Folder>
   <Folder Name="/tests/">
